@@ -55,12 +55,12 @@ func (p *p2cPickBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 
-	var conns []*subConn
+	var conns []*p2cSubConn
 	for conn, connInfo := range info.ReadySCs {
-		conns = append(conns, &subConn{
-			addr:    connInfo.Address,
-			conn:    conn,
-			success: initSuccess,
+		conns = append(conns, &p2cSubConn{
+			addr:        connInfo.Address,
+			conn:        conn,
+			successEWMA: initSuccess,
 		})
 	}
 
@@ -73,7 +73,7 @@ func (p *p2cPickBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 }
 
 type p2cPicker struct {
-	conns []*subConn
+	conns []*p2cSubConn
 	r     *rand.Rand
 	stamp *atomicx.AtomicDuration
 	lock  sync.Mutex
@@ -83,24 +83,28 @@ func (p *p2cPicker) Pick(balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	var chosen *subConn
+	var chosen *p2cSubConn
 	switch len(p.conns) {
-	case 0:
+	case 0:	// 没有节点, 直接报错
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
-	case 1:
+	case 1:	// 一个节点, 直接返回
 		chosen = p.choose(p.conns[0], nil)
-	case 2:
+	case 2: // 两个节点, 返回负载最低的节点
 		chosen = p.choose(p.conns[0], p.conns[1])
-	default:
-		var node1, node2 *subConn
+	default: // 多个节点, 最多经常三次计算, 选择合适的节点
+		var node1, node2 *p2cSubConn
+		// 三次随机选择节点
 		for i := 0; i < pickTimes; i++ {
 			a := p.r.Intn(len(p.conns))
 			b := p.r.Intn(len(p.conns) - 1)
 			if b >= a {
+				// 防止出现相同节点
 				b++
 			}
 			node1 = p.conns[a]
 			node2 = p.conns[b]
+
+			// 选出一次符合要求的节点则停止
 			if node1.healthy() && node2.healthy() {
 				break
 			}
@@ -118,12 +122,15 @@ func (p *p2cPicker) Pick(balancer.PickInfo) (balancer.PickResult, error) {
 	}, nil
 }
 
-func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
+func (p *p2cPicker) buildDoneFunc(c *p2cSubConn) func(info balancer.DoneInfo) {
 	start := int64(time.Since(initTime))
 	return func(info balancer.DoneInfo) {
+		// 正在处理的请求数-1
 		atomic.AddInt64(&c.inFlight, -1)
+
+		// 计算相对时间
 		now := time.Since(initTime)
-		last := atomic.SwapInt64(&c.last, int64(now))
+		last := atomic.SwapInt64(&c.lastLag, int64(now))
 		td := int64(now) - last
 		if td < 0 {
 			td = 0
@@ -135,13 +142,14 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 		if lag < 0 {
 			lag = 0
 		}
-		olag := atomic.LoadUint64(&c.lag)
+		olag := atomic.LoadUint64(&c.lagEWMA)
 		if olag == 0 {
 			beta = 0
 		}
 
 		// 指数加权平均算法 vt = vt-1 * β + vt * (1 - β)
-		atomic.StoreUint64(&c.lag, uint64(float64(olag)*beta+float64(lag)*(1-beta)))
+		// 存储当前lagEWMA
+		atomic.StoreUint64(&c.lagEWMA, uint64(float64(olag)*beta+float64(lag)*(1-beta)))
 
 		success := initSuccess
 		if info.Err != nil {
@@ -150,8 +158,11 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 				success = 0
 			}
 		}
-		oldSuccess := atomic.LoadUint64(&c.success)
-		atomic.StoreUint64(&c.success, uint64(float64(oldSuccess)*beta+float64(success)*(1-beta)))
+
+		oldSuccess := atomic.LoadUint64(&c.successEWMA)
+		// 指数加权平均算法 vt = vt-1 * β + vt * (1 - β)
+		// 存储当前successEWMA
+		atomic.StoreUint64(&c.successEWMA, uint64(float64(oldSuccess)*beta+float64(success)*(1-beta)))
 
 		stamp := p.stamp.Load()
 		if now-stamp >= logInterval {
@@ -176,10 +187,10 @@ func (p *p2cPicker) logStats() {
 	logger.Printf("%s", strings.Join(stats, "; "))
 }
 
-func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
+func (p *p2cPicker) choose(c1, c2 *p2cSubConn) *p2cSubConn {
 	start := int64(time.Since(initTime))
 	if c2 == nil {
-		atomic.StoreInt64(&c1.pick, start)
+		atomic.StoreInt64(&c1.pickTime, start)
 		return c1
 	}
 
@@ -190,38 +201,39 @@ func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
 
 	// 选择响应快的
 	// 如果在超时时间内节点没有被选中过, 则选择该节点
-	pick := atomic.LoadInt64(&c2.pick)
-	if start-pick > forcePick && atomic.CompareAndSwapInt64(&c2.pick, pick, start) {
+	pick := atomic.LoadInt64(&c2.pickTime)
+	if start-pick > forcePick && atomic.CompareAndSwapInt64(&c2.pickTime, pick, start) {
 		return c2
 	}
 
-	atomic.StoreInt64(&c1.pick, start)
+	atomic.StoreInt64(&c1.pickTime, start)
 	return c1
 }
 
-type subConn struct {
+type p2cSubConn struct {
 	addr resolver.Address
 	conn balancer.SubConn
 
-	lag uint64
+	lagEWMA uint64 // 请求耗时, 计算后的ewma
 
-	inFlight int64
-	success  uint64
-	requests int64
+	inFlight    int64  // 节点拥塞度, 正在处理的请求
+	successEWMA uint64 // 一段时间内此连接的健康状态, 计算后的ewma
+	requests    int64  // 请求量
 
-	last int64
-	pick int64
+	lastLag  int64 // 上一次请求耗时, 用于计算ewma
+	pickTime int64 // 上一次选择的时间时间戳
 }
 
-func (s *subConn) healthy() bool {
-	return atomic.LoadUint64(&s.success) > throttleSuccess
+func (s *p2cSubConn) healthy() bool {
+	return atomic.LoadUint64(&s.successEWMA) > throttleSuccess
 }
 
-func (s *subConn) load() int64 {
-	lag := int64(math.Sqrt(float64(atomic.LoadUint64(&s.lag) + 1)))
+// load = lagEWMA * inFlight
+func (s *p2cSubConn) load() int64 {
+	lag := int64(math.Sqrt(float64(atomic.LoadUint64(&s.lagEWMA) + 1)))
 	load := lag * (atomic.LoadInt64(&s.inFlight) + 1)
 	if load == 0 {
-		// penalty是初始化没有数据时的惩罚值
+		// penalty是初始化没有数据时的惩罚值, 在没有被选过的情况下, 会强制选择一次
 		return penalty
 	}
 
