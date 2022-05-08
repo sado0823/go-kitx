@@ -5,13 +5,13 @@
 Some practical tools、 algorithms written in Go
 
 
-- [x] [p2c grpc balancer](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
+- [x] [**p2c grpc balancer**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
 ```go
 // example
 
 ```
 
-- [x] [ast rule engine](https://github.com/sado0823/go-kitx/blob/master/kit/rule/parser.go)
+- [x] [**ast rule engine**](https://github.com/sado0823/go-kitx/blob/master/kit/rule/parser.go)
 ```go
 // example
 import (
