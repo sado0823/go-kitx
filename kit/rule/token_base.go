@@ -13,6 +13,16 @@ type baseToken struct {
 	value  interface{}
 }
 
+func (t *baseToken) canRunNext(allow []Symbol, next Token) error {
+	for _, kind := range allow {
+		if next.Symbol() == kind {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("token(%s) can NOT exist after token(%s)", next.String(), t.String())
+}
+
 func (t *baseToken) Pos() token.Pos {
 	return t.pos
 }
@@ -22,7 +32,13 @@ func (t *baseToken) Peer() token.Token {
 }
 
 func (t *baseToken) String() string {
-	return fmt.Sprintf("token=%d\t token_string=%s\t lit=%s\t \n", t.tok, t.tok.String(), t.lit)
+	var s string
+	if t.lit != "" {
+		s = t.lit
+	} else {
+		s = t.tok.String()
+	}
+	return fmt.Sprintf("expr=%s \t pos=%v", s, t.pos)
 }
 
 func (t *baseToken) Lit() string {
@@ -41,28 +57,52 @@ func (t *baseToken) RightCheckFn() ParamCheckFn {
 	return nil
 }
 
+func (t *baseToken) CanEOF() bool {
+	return false
+}
+
 type comparableBase struct {
 	baseToken
 }
 
 func (t *comparableBase) LeftCheckFn() ParamCheckFn {
 	return func(left, right interface{}, param map[string]interface{}) error {
-		_, l := left.(float64)
-		if l {
-			return nil
+		leftT := fmt.Sprintf("%T", left)
+		rightT := fmt.Sprintf("%T", right)
+		if leftT != rightT {
+			return fmt.Errorf("left type=%s should be equal to right type=%s", leftT, rightT)
+
 		}
-		return fmt.Errorf("left should be float64, got:%T", left)
+		return nil
 	}
 }
 
 func (t *comparableBase) RightCheckFn() ParamCheckFn {
 	return func(left, right interface{}, param map[string]interface{}) error {
-		_, r := right.(float64)
-		if r {
-			return nil
+		leftT := fmt.Sprintf("%T", left)
+		rightT := fmt.Sprintf("%T", right)
+		if leftT != rightT {
+			return fmt.Errorf("left type=%s should be equal right type=%s", leftT, rightT)
+
 		}
-		return fmt.Errorf("right should be float64, got:%T", right)
+		return nil
 	}
+}
+
+func (t *comparableBase) CanNext(token Token) error {
+	validNextKinds := []Symbol{
+		NEGATE,
+		NOT,
+		Number,
+		Bool,
+		Ident,
+		Func,
+		String,
+		LPAREN,
+		RPAREN,
+	}
+
+	return t.canRunNext(validNextKinds, token)
 }
 
 type boolBase struct {
@@ -75,7 +115,7 @@ func (t *boolBase) LeftCheckFn() ParamCheckFn {
 		case bool:
 			return nil
 		default:
-			return fmt.Errorf("left should be bool, got:%T", left)
+			return fmt.Errorf("left should be bool, got:%T, TOKEN:%#v", left, t)
 		}
 	}
 }
@@ -89,4 +129,17 @@ func (t *boolBase) RightCheckFn() ParamCheckFn {
 			return fmt.Errorf("right should be bool, got:%T", right)
 		}
 	}
+}
+
+func (t *boolBase) CanNext(token Token) error {
+	validNextKinds := []Symbol{
+		Ident,
+		Bool,
+		Func,
+		NEGATE,
+		Number,
+		LPAREN,
+	}
+
+	return t.canRunNext(validNextKinds, token)
 }

@@ -1,17 +1,5 @@
 package rule
 
-type tokenBool struct {
-	boolBase
-}
-
-func (t *tokenBool) Symbol() Symbol {
-	return Bool
-}
-
-func (t *tokenBool) SymbolFn() SymbolFn {
-	return getLiteralFn(t.value)
-}
-
 // !
 type tokenNOT struct {
 	boolBase

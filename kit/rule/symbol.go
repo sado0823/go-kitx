@@ -1,15 +1,19 @@
 package rule
 
 import (
+	"fmt"
 	"go/token"
 	"strconv"
+	"strings"
 )
 
 const (
-	Null Symbol = iota
+	Unkown Symbol = iota
+	Null
 	Ident
 	Bool
 	Func
+
 	EQL // ==
 	NEQ // !=
 	GTR // >
@@ -27,18 +31,21 @@ const (
 	QUO // /
 	REM // %
 	NOT // !
+
 	Number
 	String
-	FLOAT
-	Comma  // ,
-	LAND   // &&
-	LOR    // ||
+
+	Comma // ,
+	LAND  // &&
+	LOR   // ||
+
 	NEGATE // -1,-2,-3...
 	LPAREN // (
 	RPAREN // )
 )
 
 var token2Symbol = map[token.Token]Symbol{
+	token.FUNC:   Func,
 	token.IDENT:  Ident,
 	token.INT:    Number,
 	token.FLOAT:  Number,
@@ -382,24 +389,32 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 		return ret, nil
 	},
 	Bool: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
-		return &tokenBool{boolBase{
+		var v bool
+		if strings.ToUpper(lit) == "TRUE" {
+			v = true
+		}
+		return &tokenBool{
 			baseToken: baseToken{
 				pos:    pos,
 				tok:    tok,
 				tokStr: tok.String(),
 				lit:    lit,
-				value:  lit,
+				value:  v,
 			},
-		}}, nil
+		}, nil
 	},
 	String: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+		v, err := strconv.Unquote(lit)
+		if err != nil {
+			return nil, fmt.Errorf("invalid string input, err=%+v, expr=%s, pos=%v", err, tok.String(), lit)
+		}
 		return &tokenString{
 			baseToken: baseToken{
 				pos:    pos,
 				tok:    tok,
 				tokStr: tok.String(),
 				lit:    lit,
-				value:  lit,
+				value:  v,
 			},
 		}, nil
 	},

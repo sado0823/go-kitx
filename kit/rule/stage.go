@@ -1,9 +1,5 @@
 package rule
 
-import (
-	"fmt"
-)
-
 type stream struct {
 	tokens []Token
 	index  int
@@ -25,9 +21,11 @@ func (s stream) hasNext() bool {
 }
 
 type (
+	// operator level
 	leveler func(stream *stream) (*stage, error)
 
 	planner struct {
+		// valid operators
 		validTokens []Token
 
 		nextLeft  leveler
@@ -46,6 +44,7 @@ var planLogicalOr leveler
 var planSeparator leveler
 
 func init() {
+	// todo complete prefix type rule
 	planPrefix = planer2level(&planner{
 		validTokens: []Token{&tokenNOT{}, &tokenNEGATE{}},
 		nextRight:   funcStage,
@@ -148,7 +147,6 @@ func level2stage(stream *stream, validTokens []Token, right, left leveler) (*sta
 		}
 
 		return &stage{
-
 			symbol: tokenNow,
 			left:   leftStage,
 			right:  rightStage,
@@ -168,7 +166,16 @@ func funcStage(stream *stream) (*stage, error) {
 		return valueStage(stream)
 	}
 
-	return nil, fmt.Errorf("unsupported func type")
+	rightStage, err := valueStage(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	return &stage{
+		symbol: tokenNow,
+		right:  rightStage,
+	}, nil
+
 }
 
 func valueStage(stream *stream) (*stage, error) {

@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	logger   = log.New(os.Stdout, "grpc balancer p2c - ", log.LstdFlags)
+	logger   = log.New(os.Stdout, fmt.Sprintf("[DEBUG][pkg=p2c][%s] ", time.Now().Format(time.StampMilli)), log.Lshortfile)
 	initTime = time.Now().AddDate(-1, -1, -1)
 )
 
@@ -85,9 +85,9 @@ func (p *p2cPicker) Pick(balancer.PickInfo) (balancer.PickResult, error) {
 
 	var chosen *p2cSubConn
 	switch len(p.conns) {
-	case 0:	// 没有节点, 直接报错
+	case 0: // 没有节点, 直接报错
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
-	case 1:	// 一个节点, 直接返回
+	case 1: // 一个节点, 直接返回
 		chosen = p.choose(p.conns[0], nil)
 	case 2: // 两个节点, 返回负载最低的节点
 		chosen = p.choose(p.conns[0], p.conns[1])
