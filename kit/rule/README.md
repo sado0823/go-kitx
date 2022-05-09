@@ -8,10 +8,13 @@ import (
 
 func main(){
 	
+    expr := `foo + 1 > bar`
+	
     param := map[string]interface{}{
         "foo": 5,
         "bar": 6,
     }
+	
     res, err := Do(context.Background(), expr, param)
     if err != nil {
         panic(err)
