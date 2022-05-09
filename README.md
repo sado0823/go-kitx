@@ -11,7 +11,7 @@ Some practical tools、 algorithms written in Go
 
 ```
 
-- [x] [**ast rule engine**](https://github.com/sado0823/go-kitx/blob/master/kit/rule/parser.go)
+- [x] [**ast rule engine**](https://github.com/sado0823/go-kitx/tree/master/kit/rule)
 ```go
 // example
 import (
