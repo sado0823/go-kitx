@@ -11,12 +11,16 @@ import (
 
 func Test_New(t *testing.T) {
 	//expr := `(foo - 90 > 0 ) && ( foo > 1 || foo <1 ) && foo > 1`
-	expr := `func in(foo,"a",1,1.2)`
+	expr := `func in(foo,"a",1,1.2) && func test(in,1,2,3,"c")`
 	param := map[string]interface{}{
 		"foo": "a",
-		"in":  1,
+		"in":  12.2,
 	}
-	parser, err := New(context.Background(), expr)
+	parser, err := New(context.Background(), expr, WithCustomFn("test", func(arguments ...interface{}) (interface{}, error) {
+		logger.Println("i am test func")
+		logger.Println(arguments...)
+		return true, nil
+	}))
 	if err != nil {
 		panic(err)
 	}
@@ -29,10 +33,10 @@ func Test_New(t *testing.T) {
 
 func Test_Do(t *testing.T) {
 	//expr := `(foo - 90 > 0 ) && ( foo > 1 || foo <1 ) && foo > 1`
-	expr := `func in(foo,"a",1,1.2)`
+	expr := `foo + 1 > bar`
 	param := map[string]interface{}{
-		"foo": "a",
-		"in":  1,
+		"foo": 5,
+		"bar": 6,
 	}
 
 	res, err := Do(context.Background(), expr, param)

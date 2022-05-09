@@ -19,13 +19,11 @@ import (
 )
 
 func main(){
-	// use build in custom func `in`
-    expr := `func in(foo,"a",1,1.2)`
+	
     param := map[string]interface{}{
-        "foo": "a",
-        "in":  1,
+        "foo": 5,
+        "bar": 6,
     }
-    
     res, err := Do(context.Background(), expr, param)
     if err != nil {
         panic(err)

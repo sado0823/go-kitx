@@ -38,7 +38,7 @@ func (t *baseToken) String() string {
 	} else {
 		s = t.tok.String()
 	}
-	return fmt.Sprintf("expr=%s \t pos=%v", s, t.pos)
+	return fmt.Sprintf("expr=%q \t pos=%v", s, t.pos)
 }
 
 func (t *baseToken) Lit() string {

@@ -110,8 +110,6 @@ func (t *tokenFunc) Symbol() Symbol {
 	return Func
 }
 
-
-
 func (t *tokenFunc) parseParams2Arr(arr []interface{}, v interface{}) []interface{} {
 	switch assertV := v.(type) {
 	case []interface{}:
@@ -127,7 +125,10 @@ func (t *tokenFunc) parseParams2Arr(arr []interface{}, v interface{}) []interfac
 func (t *tokenFunc) SymbolFn() SymbolFn {
 	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
 
-		fn := _buildInCustomFn[t.value.(string)]
+		fn, ok := t.value.(CustomFn)
+		if !ok || fn == nil {
+			return nil, fmt.Errorf("invalid func, name=%s, type=%T, value=%v", t.lit, t.value, t.value)
+		}
 
 		if right == nil {
 			return fn()

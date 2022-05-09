@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/scanner"
 	"go/token"
-	"io"
 	"log"
 	"os"
 	"strings"
@@ -17,24 +16,51 @@ var (
 )
 
 func init() {
-	logger.SetFlags(0)
-	logger.SetOutput(io.Discard)
+	//logger.SetFlags(0)
+	//logger.SetOutput(io.Discard)
 }
 
-type Parser struct {
-	ctx context.Context
+type (
+	Parser struct {
+		ctx context.Context
 
-	sc   scanner.Scanner
-	fSet *token.FileSet
-	file *token.File
+		sc   scanner.Scanner
+		fSet *token.FileSet
+		file *token.File
 
-	expr    string
-	streamV *stream
-	stageV  *stage
+		expr    string
+		streamV *stream
+		stageV  *stage
+
+		option *option
+	}
+
+	option struct {
+		customFns map[string]CustomFn
+	}
+
+	WithOption func(*option)
+)
+
+func WithCustomFn(name string, fn CustomFn) WithOption {
+	return func(o *option) {
+		o.customFns[name] = fn
+	}
 }
 
-func Do(ctx context.Context, expr string, params map[string]interface{}) (interface{}, error) {
-	parser, err := New(ctx, expr)
+func doOptions(options ...WithOption) *option {
+	option := &option{
+		customFns: make(map[string]CustomFn),
+	}
+	for _, withOption := range options {
+		withOption(option)
+	}
+
+	return option
+}
+
+func Do(ctx context.Context, expr string, params map[string]interface{}, options ...WithOption) (interface{}, error) {
+	parser, err := New(ctx, expr, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +68,7 @@ func Do(ctx context.Context, expr string, params map[string]interface{}) (interf
 	return parser.Eval(params)
 }
 
-func New(ctx context.Context, expr string) (parser *Parser, err error) {
+func New(ctx context.Context, expr string, options ...WithOption) (parser *Parser, err error) {
 	src := []byte(expr)
 
 	var s scanner.Scanner
@@ -50,7 +76,7 @@ func New(ctx context.Context, expr string) (parser *Parser, err error) {
 	file := fSet.AddFile("", fSet.Base(), len(src))
 	s.Init(file, src, nil /* no error handler */, scanner.ScanComments)
 
-	p := &Parser{ctx: ctx, sc: s, fSet: fSet, file: file, expr: expr}
+	p := &Parser{ctx: ctx, sc: s, fSet: fSet, file: file, expr: expr, option: doOptions(options...)}
 	p.streamV, err = p.stream()
 	if err != nil {
 		return nil, err
@@ -110,8 +136,21 @@ func (p *Parser) read() ([]Token, error) {
 
 		if tok == token.IDENT {
 			if beforeToken.Symbol() == Func {
-				beforeToken.(*tokenFunc).value = lit
-				continue
+				inputCustomFn, okInput := p.option.customFns[lit]
+				buildInCustomFn, okBuildIn := _buildInCustomFn[lit]
+				if !okInput && !okBuildIn {
+					return nil, fmt.Errorf("unknown func, name=%s, pos=%v", lit, pos)
+				}
+				tokenFn := beforeToken.(*tokenFunc)
+				tokenFn.lit = lit
+				if okInput {
+					tokenFn.value = inputCustomFn
+					continue
+				}
+				if okBuildIn {
+					tokenFn.value = buildInCustomFn
+					continue
+				}
 			}
 
 			// parse bool
