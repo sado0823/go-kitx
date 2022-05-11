@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/scanner"
 	"go/token"
-	"io"
 	"log"
 	"os"
 	"strings"
@@ -17,8 +16,8 @@ var (
 )
 
 func init() {
-	logger.SetFlags(0)
-	logger.SetOutput(io.Discard)
+	//logger.SetFlags(0)
+	//logger.SetOutput(io.Discard)
 }
 
 type (
@@ -58,6 +57,20 @@ func doOptions(options ...WithOption) *option {
 	}
 
 	return option
+}
+
+func Check(ctx context.Context, expr string, options ...WithOption) (err error) {
+	src := []byte(expr)
+
+	var s scanner.Scanner
+	fSet := token.NewFileSet()
+	file := fSet.AddFile("", fSet.Base(), len(src))
+	s.Init(file, src, nil /* no error handler */, scanner.ScanComments)
+
+	p := &Parser{ctx: ctx, sc: s, fSet: fSet, file: file, expr: expr, option: doOptions(options...)}
+	p.streamV, err = p.stream()
+
+	return err
 }
 
 func Do(ctx context.Context, expr string, params map[string]interface{}, options ...WithOption) (interface{}, error) {
@@ -108,7 +121,7 @@ func (p *Parser) read() ([]Token, error) {
 	)
 	for {
 		pos, tok, lit := p.sc.Scan()
-		logger.Printf("pos_o=%d  pos=%s\t token=%q\t lit=%q\n", pos, p.fSet.Position(pos), tok.String(), lit)
+		logger.Printf("pos_o=%d  pos=%s\t token=%#v\t token_str=%q\t lit=%q\n", pos, p.fSet.Position(pos), tok, tok.String(), lit)
 		if tok == token.EOF {
 			if !beforeToken.CanEOF() {
 				return nil, fmt.Errorf("%s can NOT be last", beforeToken.String())
@@ -159,6 +172,11 @@ func (p *Parser) read() ([]Token, error) {
 				symbol = Bool
 				goto symbolStep
 			}
+		}
+
+		if beforeToken.CanNext(&tokenNEGATE{}) == nil && tok == token.SUB {
+			symbol = NEGATE
+			goto symbolStep
 		}
 
 		symbol, supported = token2Symbol[tok]

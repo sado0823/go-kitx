@@ -1,6 +1,8 @@
 package rule
 
-import "fmt"
+import (
+	"reflect"
+)
 
 // ==
 type tokenEQL struct {
@@ -13,25 +15,7 @@ func (t *tokenEQL) Symbol() Symbol {
 
 func (t *tokenEQL) SymbolFn() SymbolFn {
 	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		l1, ok1 := left.(string)
-		r1, ok2 := right.(string)
-		if ok1 && ok2 {
-			return l1 == r1, nil
-		}
-
-		l2, ok1 := left.(float64)
-		r2, ok2 := right.(float64)
-		if ok1 && ok2 {
-			return l2 == r2, nil
-		}
-
-		l3, ok1 := left.(bool)
-		r3, ok2 := right.(bool)
-		if ok1 && ok2 {
-			return l3 == r3, nil
-		}
-
-		return nil, fmt.Errorf("invalid left=%v, or right=%v", left, right)
+		return reflect.DeepEqual(left, right), nil
 	}
 }
 
@@ -46,7 +30,7 @@ func (t *tokenNEQ) Symbol() Symbol {
 
 func (t *tokenNEQ) SymbolFn() SymbolFn {
 	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		return left.(float64) != right.(float64), nil
+		return !reflect.DeepEqual(left, right), nil
 	}
 }
 

@@ -33,7 +33,7 @@ func Test_New(t *testing.T) {
 
 func Test_Do(t *testing.T) {
 	//expr := `(foo - 90 > 0 ) && ( foo > 1 || foo <1 ) && foo > 1`
-	expr := `foo + 1 > bar`
+	expr := `100`
 	param := map[string]interface{}{
 		"foo": 5,
 		"bar": 6,

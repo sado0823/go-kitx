@@ -1,11 +1,32 @@
 package rule
 
+import "fmt"
+
 type tokenNEGATE struct {
 	comparableBase
 }
 
 func (t *tokenNEGATE) Symbol() Symbol {
 	return NEGATE
+}
+
+func (t *tokenNEGATE) LeftCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param map[string]interface{}) error {
+		return nil
+	}
+}
+
+func (t *tokenNEGATE) RightCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param map[string]interface{}) error {
+		_, ok1 := right.(int)
+		_, ok2 := right.(float64)
+
+		if !ok1 && !ok2 {
+			return fmt.Errorf("tokenNEGATE right should be int or float64, got:%T, value:%v", right, right)
+
+		}
+		return nil
+	}
 }
 
 func (t *tokenNEGATE) SymbolFn() SymbolFn {

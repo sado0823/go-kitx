@@ -45,6 +45,7 @@ var planSeparator leveler
 
 func init() {
 	// todo complete prefix type rule
+	// 优先级越高的操作符, 在树的越下层, 极限就是叶子节点
 	planPrefix = planer2level(&planner{
 		validTokens: []Token{&tokenNOT{}, &tokenNEGATE{}},
 		nextRight:   funcStage,

@@ -362,6 +362,19 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 			},
 		}, nil
 	},
+	NEGATE: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+		return &tokenNEGATE{
+			comparableBase: comparableBase{
+				baseToken: baseToken{
+					pos:    pos,
+					tok:    tok,
+					tokStr: tok.String(),
+					lit:    lit,
+					value:  lit,
+				},
+			},
+		}, nil
+	},
 	Number: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		ret := new(tokenNumber)
 		var value interface{}
