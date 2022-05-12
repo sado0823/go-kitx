@@ -2,38 +2,7 @@ package rule
 
 import "fmt"
 
-type tokenNEGATE struct {
-	comparableBase
-}
 
-func (t *tokenNEGATE) Symbol() Symbol {
-	return NEGATE
-}
-
-func (t *tokenNEGATE) LeftCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
-		return nil
-	}
-}
-
-func (t *tokenNEGATE) RightCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
-		_, ok1 := right.(int)
-		_, ok2 := right.(float64)
-
-		if !ok1 && !ok2 {
-			return fmt.Errorf("tokenNEGATE right should be int or float64, got:%T, value:%v", right, right)
-
-		}
-		return nil
-	}
-}
-
-func (t *tokenNEGATE) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		return -right.(float64), nil
-	}
-}
 
 // +
 type tokenADD struct {
@@ -46,7 +15,19 @@ func (t *tokenADD) Symbol() Symbol {
 
 func (t *tokenADD) SymbolFn() SymbolFn {
 	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		return left.(float64) + right.(float64), nil
+		l1, ok1 := left.(float64)
+		r1, ok2 := right.(float64)
+		if ok1 && ok2 {
+			return l1 + r1, nil
+		}
+
+		l2, ok1 := left.(string)
+		r2, ok2 := right.(string)
+		if ok1 && ok2 {
+			return l2 + r2, nil
+		}
+
+		return nil, fmt.Errorf("tokenADD unsupported type to do add, left=%v,right=%v", left, right)
 	}
 }
 

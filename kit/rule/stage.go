@@ -1,5 +1,21 @@
 package rule
 
+type stage struct {
+	symbol Token
+
+	left  *stage
+	right *stage
+}
+
+func (s *stage) swapWith(other *stage) {
+
+	otherSymbol := other.symbol
+	currentSymbol := s.symbol
+
+	other.symbol = currentSymbol
+	s.symbol = otherSymbol
+}
+
 type stream struct {
 	tokens []Token
 	index  int

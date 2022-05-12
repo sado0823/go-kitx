@@ -26,9 +26,9 @@ var _buildInCustomFn = map[string]CustomFn{
 		)
 
 		arr = append(arr, arguments[1:]...)
-		logger.Printf("key=%v, key_type=%T \n",key,key)
+		logger.Printf("key=%v, key_type=%T \n", key, key)
 		for _, arg := range arr {
-			logger.Printf("arg=%v, arg_type=%T \n",arg,arg)
+			logger.Printf("arg=%v, arg_type=%T \n", arg, arg)
 			if reflect.DeepEqual(key, arg) {
 				return true, nil
 			}

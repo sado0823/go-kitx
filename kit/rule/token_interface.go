@@ -27,13 +27,6 @@ type (
 		CanNext(token Token) error
 		CanEOF() bool
 	}
-
-	stage struct {
-		symbol Token
-
-		left  *stage
-		right *stage
-	}
 )
 
 func getIDENTFn(paramName string) SymbolFn {
@@ -257,6 +250,7 @@ func (t *tokenString) CanNext(token Token) error {
 		EQL,    // ==
 		NEQ,    // !=
 		RPAREN, // )
+		ADD,    // +
 	}
 
 	return t.canRunNext(validNextKinds, token)

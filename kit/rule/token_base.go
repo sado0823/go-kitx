@@ -139,6 +139,7 @@ func (t *boolBase) CanNext(token Token) error {
 		NEGATE,
 		Number,
 		LPAREN,
+		NOT,
 	}
 
 	return t.canRunNext(validNextKinds, token)

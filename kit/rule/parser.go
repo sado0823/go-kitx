@@ -141,7 +141,7 @@ func (p *Parser) read() ([]Token, error) {
 		}
 
 		var (
-			symbol       = Unkown
+			symbol       = Unknown
 			parseToken   Token
 			supported    bool
 			parseTokenFn func(pos token.Pos, tok token.Token, lit string) (Token, error)
@@ -217,15 +217,109 @@ func buildStage(stream *stream) (*stage, error) {
 		return nil, nil
 	}
 
-	return planSeparator(stream)
+	stage, err := planSeparator(stream)
+	if err != nil {
+		return nil, err
+	}
+	reorderStages(stage)
+
+	return stage, nil
 }
 
-func buildStageFromTokens(tokens []Token) (*stage, error) {
-	ret := new(stream)
-	ret.tokens = tokens
-	ret.len = len(tokens)
+//	During stage planning, stages of equal precedence are parsed such that they'll be evaluated in reverse order.
+//
+//	For commutative operators like "+" or "-", it's no big deal.
+//	But for order-specific operators, it ruins the expected result.
+func reorderStages(rootStage *stage) {
 
-	return planSeparator(ret)
+	if rootStage == nil {
+		return
+	}
+
+	// traverse every rightStage until we find multiples in a row of the same precedence.
+	var identicalPrecedences []*stage
+	var currentStage, nextStage *stage
+	var precedence, currentPrecedence int
+
+	nextStage = rootStage
+	precedence = symbolPrecedence(rootStage.symbol.Symbol())
+
+	for nextStage != nil {
+
+		currentStage = nextStage
+		nextStage = currentStage.right
+
+		// left depth first, since this entire method only looks for precedences down the right side of the tree
+		if currentStage.left != nil {
+			reorderStages(currentStage.left)
+		}
+
+		currentPrecedence = symbolPrecedence(currentStage.symbol.Symbol())
+
+		if currentPrecedence == precedence {
+			identicalPrecedences = append(identicalPrecedences, currentStage)
+			continue
+		}
+
+		// precedence break.
+		// See how many in a row we had, and reorder if there's more than one.
+		if len(identicalPrecedences) > 1 {
+			mirrorStageSubtree(identicalPrecedences)
+		}
+
+		identicalPrecedences = []*stage{currentStage}
+		precedence = currentPrecedence
+	}
+
+	if len(identicalPrecedences) > 1 {
+		mirrorStageSubtree(identicalPrecedences)
+	}
+}
+
+//	Performs a "mirror" on a subtree of stages.
+//
+//	This mirror functionally inverts the order of execution for all members of the [stages] list.
+//	That list is assumed to be a root-to-leaf (ordered) list of evaluation stages,
+//	where each is a right-hand stage of the last.
+func mirrorStageSubtree(stages []*stage) {
+
+	var rootStage, inverseStage, carryStage, frontStage *stage
+
+	stagesLength := len(stages)
+
+	// reverse all right/left
+	for _, frontStage = range stages {
+
+		carryStage = frontStage.right
+		frontStage.right = frontStage.left
+		frontStage.left = carryStage
+	}
+
+	// end left swaps with root right
+	rootStage = stages[0]
+	frontStage = stages[stagesLength-1]
+
+	carryStage = frontStage.left
+	frontStage.left = rootStage.right
+	rootStage.right = carryStage
+
+	// for all non-root non-end stages, right is swapped with inverse stage right in list
+	for i := 0; i < (stagesLength-2)/2+1; i++ {
+
+		frontStage = stages[i+1]
+		inverseStage = stages[stagesLength-i-1]
+
+		carryStage = frontStage.right
+		frontStage.right = inverseStage.right
+		inverseStage.right = carryStage
+	}
+
+	// swap all other information with inverse stages
+	for i := 0; i < stagesLength/2; i++ {
+		frontStage = stages[i]
+		inverseStage = stages[stagesLength-i-1]
+		frontStage.swapWith(inverseStage)
+	}
 }
 
 func doStage(stage *stage, parameters map[string]interface{}) (interface{}, error) {

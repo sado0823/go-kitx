@@ -8,41 +8,105 @@ import (
 )
 
 const (
-	Unkown Symbol = iota
+	Unknown Symbol = iota
 	Null
-	Ident
-	Bool
-	Func
 
+	literalBeg
+	Ident
+	Number
+	String
+	Bool
+	literalEnd
+
+	keywordBeg
+	Func
+	keywordEnd
+
+	operatorBeg
+
+	comparatorBeg
 	EQL // ==
 	NEQ // !=
 	GTR // >
 	GEQ // >=
 	LSS // <
 	LEQ // <=
+	comparatorEnd
+
+	bitwiseBeg
 	AND // &
 	OR  // |
 	XOR // ^
+	bitwiseEnd
+
+	bitwiseShiftBeg
 	SHL // <<
 	SHR // >>
+	bitwiseShiftEnd
+
+	additiveBeg
 	ADD // +
 	SUB // -
+	additiveEnd
+
+	multiplicativeBeg
 	MUL // *
 	QUO // /
 	REM // %
-	NOT // !
+	multiplicativeEnd
 
-	Number
-	String
-
-	Comma // ,
-	LAND  // &&
-	LOR   // ||
-
+	prefixBeg
+	NOT    // !
 	NEGATE // -1,-2,-3...
+	prefixEnd
+
+	logicBeg
+	LAND // &&
+	LOR  // ||
+	logicEnd
+
 	LPAREN // (
 	RPAREN // )
+
+	Comma // ,
+	operatorEnd
 )
+
+func symbolPrecedence(symbol Symbol) int {
+	switch symbol {
+	case Null:
+		return 0
+	case Ident, Number, String, Bool:
+		return 1
+	case Func:
+		return 2
+	case NOT, NEGATE:
+		return 3
+	case LOR:
+		return 4
+	case LAND:
+		return 5
+	case EQL, NEQ, LSS, LEQ, GTR, GEQ:
+		return 6
+	case ADD, SUB:
+		return 7
+	case MUL, QUO, REM:
+		return 8
+	case AND, OR, XOR:
+		return 9
+	case SHL, SHR:
+		return 10
+	case Comma:
+		return 11
+	}
+	return 1
+}
+
+func isLiteral(symbol Symbol) bool { return literalBeg < symbol && symbol < literalEnd }
+
+func isOperator(symbol Symbol) bool { return operatorBeg < symbol && symbol < operatorEnd }
+
+func isKeyword(symbol Symbol) bool { return keywordBeg < symbol && symbol < keywordEnd }
 
 var token2Symbol = map[token.Token]Symbol{
 	token.FUNC:   Func,
@@ -351,20 +415,17 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 	},
 	NOT: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		return &tokenNOT{
-			boolBase: boolBase{
-				baseToken: baseToken{
-					pos:    pos,
-					tok:    tok,
-					tokStr: tok.String(),
-					lit:    lit,
-					value:  lit,
-				},
+			baseToken: baseToken{
+				pos:    pos,
+				tok:    tok,
+				tokStr: tok.String(),
+				lit:    lit,
+				value:  lit,
 			},
 		}, nil
 	},
 	NEGATE: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		return &tokenNEGATE{
-			comparableBase: comparableBase{
 				baseToken: baseToken{
 					pos:    pos,
 					tok:    tok,
@@ -372,7 +433,6 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 					lit:    lit,
 					value:  lit,
 				},
-			},
 		}, nil
 	},
 	Number: func(pos token.Pos, tok token.Token, lit string) (Token, error) {

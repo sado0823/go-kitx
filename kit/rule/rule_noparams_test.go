@@ -221,29 +221,6 @@ func Test_No_Params(t *testing.T) {
 		},
 		{
 
-			name: "Lexicographic LT",
-			expr: `"ab" < "abc"`,
-			want: true,
-		},
-		{
-			name: "Lexicographic LTE",
-			expr: `"ab" <= "abc"`,
-			want: true,
-		},
-		{
-
-			name: "Lexicographic GT",
-			expr: `"aba" > "abc"`,
-			want: false,
-		},
-		{
-
-			name: "Lexicographic GTE",
-			expr: `"aba" >= "abc"`,
-			want: false,
-		},
-		{
-
 			name: "Boolean sign prefix comparison",
 			expr: "!true == false",
 			want: true,
@@ -262,17 +239,6 @@ func Test_No_Params(t *testing.T) {
 		{
 			name: "String to string concat",
 			expr: `"foo" + "bar" == "foobar"`,
-			want: true,
-		},
-		{
-			name: "String to float64 concat",
-			expr: `"foo" + 123 == "foo123"`,
-			want: true,
-		},
-		{
-
-			name: "Float64 to string concat",
-			expr: `123 + "bar" == "123bar"`,
 			want: true,
 		},
 		{
@@ -316,7 +282,16 @@ func Test_No_Params(t *testing.T) {
 
 	for _, noParamsCase := range noParamsCases {
 		t.Run(noParamsCase.name, func(t *testing.T) {
-			got, err := Do(context.Background(), noParamsCase.expr, nil)
+			ctx := context.Background()
+
+			// do check
+			if err := Check(ctx, noParamsCase.expr); err != nil {
+				t.Fatalf("Check() Name=%s expre=%s expected err nil but got %+v", noParamsCase.name, noParamsCase.expr, err)
+				return
+			}
+
+			// do in once
+			got, err := Do(ctx, noParamsCase.expr, nil)
 			if err != nil {
 				t.Fatalf("Do() Name=%s expre=%s expected err nil but got %+v", noParamsCase.name, noParamsCase.expr, err)
 				return
@@ -324,7 +299,8 @@ func Test_No_Params(t *testing.T) {
 				t.Fatalf("Do() Name=%s expre=%s expected %v but got %v", noParamsCase.name, noParamsCase.expr, noParamsCase.want, got)
 			}
 
-			parser, err := New(context.Background(), noParamsCase.expr)
+			// do with new and step eval
+			parser, err := New(ctx, noParamsCase.expr)
 			if err != nil {
 				t.Fatalf("New() Name=%s expre=%s expected err nil but got %+v", noParamsCase.name, noParamsCase.expr, err)
 				return

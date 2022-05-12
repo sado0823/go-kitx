@@ -139,11 +139,43 @@ func Test_Failure(t *testing.T) {
 			name: "Error after camouflage",
 			expr: "0 + ,",
 		},
+		{
+			name: "Double func keyword",
+			expr: "func func foo()",
+		},
+		{
+			name: "Unknown func",
+			expr: "func foo()",
+		},
+		{
+			name: "Double func call paren",
+			expr: "func in(1,1)()",
+		},
+		{
+			name: "Unsupported {",
+			expr: "{}",
+		},
+		{
+			name: "Unsupported [",
+			expr: "[]",
+		},
+		{
+			name: "Unsupported $",
+			expr: "1$1",
+		},
 	}
 
 	for _, failureCase := range failureCases {
 		t.Run(failureCase.name, func(t *testing.T) {
-			got, err := Do(context.Background(), failureCase.expr, nil)
+			ctx := context.Background()
+
+			// do check
+			if err := Check(ctx, failureCase.expr); err == nil {
+				t.Fatalf("Check() Name=%s expre=%s expected error but got %v", failureCase.name, failureCase.expr, err)
+				return
+			}
+
+			got, err := Do(ctx, failureCase.expr, nil)
 			if err == nil {
 				t.Fatalf("Do() Name=%s expre=%s expected error but got %v", failureCase.name, failureCase.expr, got)
 				return
@@ -153,7 +185,7 @@ func Test_Failure(t *testing.T) {
 
 			err = nil
 
-			_, err = New(context.Background(), failureCase.expr)
+			_, err = New(ctx, failureCase.expr)
 			if err == nil {
 				t.Fatalf("New() Name=%s expre=%s expected error but got %v", failureCase.name, failureCase.expr, got)
 				return

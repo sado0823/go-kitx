@@ -69,7 +69,6 @@ func (t *tokenHackRPAREN) CanNext(token Token) error {
 		Bool,
 		Ident,
 		String,
-		LPAREN,
 		RPAREN,
 		Comma,
 	}
