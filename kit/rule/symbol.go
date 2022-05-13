@@ -426,13 +426,13 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 	},
 	NEGATE: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		return &tokenNEGATE{
-				baseToken: baseToken{
-					pos:    pos,
-					tok:    tok,
-					tokStr: tok.String(),
-					lit:    lit,
-					value:  lit,
-				},
+			baseToken: baseToken{
+				pos:    pos,
+				tok:    tok,
+				tokStr: tok.String(),
+				lit:    lit,
+				value:  lit,
+			},
 		}, nil
 	},
 	Number: func(pos token.Pos, tok token.Token, lit string) (Token, error) {

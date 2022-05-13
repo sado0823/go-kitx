@@ -18,6 +18,7 @@ func Test_Func(t *testing.T) {
 		return &ext{name: name, fn: fn}
 	}
 
+	// todo add func error test
 	var funcCases = []struct {
 		name      string
 		expr      string

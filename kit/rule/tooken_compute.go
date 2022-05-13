@@ -2,8 +2,6 @@ package rule
 
 import "fmt"
 
-
-
 // +
 type tokenADD struct {
 	comparableBase

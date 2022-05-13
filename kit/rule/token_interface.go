@@ -35,8 +35,9 @@ func getIDENTFn(paramName string) SymbolFn {
 		if !ok {
 			return nil, fmt.Errorf("IDENT param not found:%s", paramName)
 		}
-		if parse, ok := v.(int); ok {
-			return float64(parse), nil
+
+		if parse, ok := convertToFloat(v); ok {
+			return parse, nil
 		}
 		return v, nil
 	}

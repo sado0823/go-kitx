@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/scanner"
 	"go/token"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -16,8 +17,8 @@ var (
 )
 
 func init() {
-	//logger.SetFlags(0)
-	//logger.SetOutput(io.Discard)
+	logger.SetFlags(0)
+	logger.SetOutput(io.Discard)
 }
 
 type (

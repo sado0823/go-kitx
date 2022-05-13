@@ -1,6 +1,28 @@
 # ast rule engine
 
 
+__supported operator__
+
+* **comparator**: `>` `>=` `<` `<=` `==`
+
+* **bitwise**: `&` `|` `^`
+
+* **bitwiseShift**: `<<` `>>`
+
+* **additive**: `+` `-`
+
+* **multiplicative**: `*` `/` `%`
+
+* **prefix**: `!`(NOT)  `-`(NEGATE)
+
+* **logic**: `&&` `||`
+
+* **others**: `(` `)` `,` `func`(do func call with build in function and custom function)
+
+* **params type**: `Ident` `Number` `String` `Bool` (DO Not support `array` `func` `struct`)
+
+
+
 ##### ExampleDo
 ```go
 import (

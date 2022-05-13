@@ -1,7 +1,5 @@
 package rule
 
-
-
 // ||
 type tokenLOR struct {
 	boolBase
