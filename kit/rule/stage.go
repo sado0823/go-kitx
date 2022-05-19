@@ -178,7 +178,7 @@ func funcStage(stream *stream) (*stage, error) {
 
 	tokenNow := stream.next()
 
-	if tokenNow.Symbol() != Func {
+	if tokenNow.Symbol() != FUNC {
 		stream.rewind()
 		return valueStage(stream)
 	}

@@ -3,6 +3,7 @@ package rule
 import (
 	"fmt"
 	"go/token"
+	"strings"
 )
 
 type (
@@ -29,20 +30,6 @@ type (
 	}
 )
 
-func getIDENTFn(paramName string) SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		v, ok := param[paramName]
-		if !ok {
-			return nil, fmt.Errorf("IDENT param not found:%s", paramName)
-		}
-
-		if parse, ok := convertToFloat(v); ok {
-			return parse, nil
-		}
-		return v, nil
-	}
-}
-
 func getLiteralFn(literal interface{}) SymbolFn {
 	return func(left interface{}, right interface{}, parameters map[string]interface{}) (interface{}, error) {
 		return literal, nil
@@ -55,43 +42,74 @@ type tokenIdent struct {
 }
 
 func (t *tokenIdent) Symbol() Symbol {
-	return Ident
+	if index := strings.LastIndex(t.lit, "."); index == len(t.lit)-1 {
+		return PERIOD
+	}
+	return IDENT
 }
 
 func (t *tokenIdent) SymbolFn() SymbolFn {
-	return getIDENTFn(t.lit)
+	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+		var (
+			selection interface{} = param
+			keys                  = strings.Split(t.lit, ".")
+			ok        bool
+		)
+
+		for _, key := range keys {
+			selection, ok = reflectSelect(key, selection)
+			if !ok {
+				return nil, fmt.Errorf("IDENT param not found:%s", t.lit)
+			}
+		}
+
+		if parse, ok := convertToFloat(selection); ok {
+			return parse, nil
+		}
+
+		return selection, nil
+	}
 }
 
 func (t *tokenIdent) CanNext(token Token) error {
 	if token.Symbol() == LPAREN {
+		if strings.Contains(t.lit, ".") {
+			return fmt.Errorf("unsupported accessor func call:%s()", t.lit)
+		}
 		return fmt.Errorf("invalid way to do func call, try `func %s()`", t.lit)
 	}
+	if t.Symbol() == PERIOD {
+		return t.canRunNext([]Symbol{IDENT, NUMBER}, token)
+	}
 	validNextKinds := []Symbol{
-		EQL, // ==
-		NEQ, // !=
-		GTR, // >
-		GEQ, // >=
-		LSS, // <
-		LEQ, // <=
-		AND, // &
-		OR,  // |
-		XOR, // ^
-		SHL, // <<
-		SHR, // >>
-		ADD, // +
-		SUB, // -
-		MUL, // *
-		QUO, // /
-		REM, // %
-		NOT, // !
-		Comma,
+		EQL,    // ==
+		NEQ,    // !=
+		GTR,    // >
+		GEQ,    // >=
+		LSS,    // <
+		LEQ,    // <=
+		AND,    // &
+		OR,     // |
+		XOR,    // ^
+		SHL,    // <<
+		SHR,    // >>
+		ADD,    // +
+		SUB,    // -
+		MUL,    // *
+		QUO,    // /
+		REM,    // %
+		NOT,    // !
+		COMMA,  // ,
+		LAND,   // &&
+		LOR,    // ||
+		PERIOD, // .
 	}
 
 	return t.canRunNext(validNextKinds, token)
 }
 
 func (t *tokenIdent) CanEOF() bool {
-	return true
+	return t.Symbol() != PERIOD
 }
 
 // todo
@@ -101,7 +119,7 @@ type tokenFunc struct {
 }
 
 func (t *tokenFunc) Symbol() Symbol {
-	return Func
+	return FUNC
 }
 
 func (t *tokenFunc) parseParams2Arr(arr []interface{}, v interface{}) []interface{} {
@@ -139,7 +157,7 @@ func (t *tokenFunc) SymbolFn() SymbolFn {
 
 func (t *tokenFunc) CanNext(token Token) error {
 	validNextKinds := []Symbol{
-		Ident,
+		IDENT,
 		LPAREN,
 		RPAREN,
 	}
@@ -153,16 +171,16 @@ type tokenSeparator struct {
 }
 
 func (t *tokenSeparator) Symbol() Symbol {
-	return Comma
+	return COMMA
 }
 
 func (t *tokenSeparator) SymbolFn() SymbolFn {
 	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
 		var ret []interface{}
 
-		switch left.(type) {
+		switch left := left.(type) {
 		case []interface{}:
-			ret = append(left.([]interface{}), right)
+			ret = append(left, right)
 		default:
 			ret = []interface{}{left, right}
 		}
@@ -175,11 +193,11 @@ func (t *tokenSeparator) CanNext(token Token) error {
 	validNextKinds := []Symbol{
 		NOT,    // !
 		NEGATE, // -1,-2,-3...
-		Number,
-		Bool,
-		String,
-		Ident,
-		Func,
+		NUMBER,
+		BOOL,
+		STRING,
+		IDENT,
+		FUNC,
 		LPAREN, // (
 		RPAREN, // )
 	}
@@ -193,7 +211,7 @@ type tokenNumber struct {
 }
 
 func (t *tokenNumber) Symbol() Symbol {
-	return Number
+	return NUMBER
 }
 
 func (t *tokenNumber) SymbolFn() SymbolFn {
@@ -219,7 +237,7 @@ func (t *tokenNumber) CanNext(token Token) error {
 		QUO,    // /
 		REM,    // %
 		RPAREN, // )
-		Comma,
+		COMMA,
 
 		LAND, // &&
 		LOR,  // ||
@@ -238,7 +256,7 @@ type tokenString struct {
 }
 
 func (t *tokenString) Symbol() Symbol {
-	return String
+	return STRING
 }
 
 func (t *tokenString) SymbolFn() SymbolFn {
@@ -247,7 +265,7 @@ func (t *tokenString) SymbolFn() SymbolFn {
 
 func (t *tokenString) CanNext(token Token) error {
 	validNextKinds := []Symbol{
-		Comma,  // ,
+		COMMA,  // ,
 		EQL,    // ==
 		NEQ,    // !=
 		RPAREN, // )
@@ -266,7 +284,7 @@ type tokenBool struct {
 }
 
 func (t *tokenBool) Symbol() Symbol {
-	return Bool
+	return BOOL
 }
 
 func (t *tokenBool) SymbolFn() SymbolFn {
@@ -277,7 +295,7 @@ func (t *tokenBool) CanNext(token Token) error {
 	validNextKinds := []Symbol{
 		EQL,    // ==
 		NEQ,    // !=
-		Comma,  // ,
+		COMMA,  // ,
 		LAND,   // &&
 		LOR,    // ||
 		RPAREN, // )
@@ -296,7 +314,7 @@ type tokenNull struct {
 }
 
 func (t *tokenNull) Symbol() Symbol {
-	return Null
+	return NULL
 }
 
 func (t *tokenNull) SymbolFn() SymbolFn {
@@ -309,11 +327,11 @@ func (t *tokenNull) CanNext(token Token) error {
 	validNextKinds := []Symbol{
 		NOT,    // !
 		NEGATE, // -1,-2,-3...
-		Number,
-		Bool,
-		Ident,
-		Func,
-		String,
+		NUMBER,
+		BOOL,
+		IDENT,
+		FUNC,
+		STRING,
 		LPAREN,
 	}
 

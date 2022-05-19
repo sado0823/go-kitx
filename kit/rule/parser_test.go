@@ -10,11 +10,21 @@ import (
 )
 
 func Test_New(t *testing.T) {
+	// todo update ReadMe
+	// support param struct Export filed
+	// support param array get with index
+	// support recursive param, get data with `.`
+	type T struct {
+		Name  string `json:"name"`
+		Hobby []T    `json:"hobby"`
+	}
 	//expr := `(foo - 90 > 0 ) && ( foo > 1 || foo <1 ) && foo > 1`
-	expr := `func in(foo,"a",1,1.2) && func test(in,1,2,3,"c")`
+	expr := `foo.bar.Hobby.0.Name`
 	param := map[string]interface{}{
-		"foo": "a",
-		"in":  12.2,
+		"foo": map[string]interface{}{
+			"bar": T{Name: "tom", Hobby: []T{{Name: "jay"}}},
+		},
+		"in": 12.2,
 	}
 	parser, err := New(context.Background(), expr, WithCustomFn("test", func(arguments ...interface{}) (interface{}, error) {
 		logger.Println("i am test func")

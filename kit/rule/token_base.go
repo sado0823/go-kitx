@@ -93,11 +93,11 @@ func (t *comparableBase) CanNext(token Token) error {
 	validNextKinds := []Symbol{
 		NEGATE,
 		NOT,
-		Number,
-		Bool,
-		Ident,
-		Func,
-		String,
+		NUMBER,
+		BOOL,
+		IDENT,
+		FUNC,
+		STRING,
 		LPAREN,
 		RPAREN,
 	}
@@ -133,11 +133,11 @@ func (t *boolBase) RightCheckFn() ParamCheckFn {
 
 func (t *boolBase) CanNext(token Token) error {
 	validNextKinds := []Symbol{
-		Ident,
-		Bool,
-		Func,
+		IDENT,
+		BOOL,
+		FUNC,
 		NEGATE,
-		Number,
+		NUMBER,
 		LPAREN,
 		NOT,
 	}

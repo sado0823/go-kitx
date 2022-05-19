@@ -7,7 +7,34 @@ import (
 	"testing"
 )
 
+type (
+	dummyParameter struct {
+		String    string
+		Int       int
+		BoolFalse bool
+		Nil       interface{}
+		Nested    dummyNestedParameter
+	}
+	dummyNestedParameter struct {
+		Funk  string
+		Map   map[string]int
+		Slice []int
+	}
+)
+
 func Test_Params(t *testing.T) {
+
+	var foo = dummyParameter{
+		String:    "string!",
+		Int:       101,
+		BoolFalse: false,
+		Nil:       nil,
+		Nested: dummyNestedParameter{
+			Funk:  "funkalicious",
+			Map:   map[string]int{"a": 1, "b": 2, "c": 3},
+			Slice: []int{1, 2, 3},
+		},
+	}
 
 	var paramsCases = []struct {
 		name   string
@@ -200,6 +227,66 @@ func Test_Params(t *testing.T) {
 				"complex128": complex128(0),
 			},
 			want: complex128(0),
+		},
+		{
+			name:   "Simple parameter call",
+			expr:   "foo.String",
+			params: map[string]interface{}{"foo": foo},
+			want:   foo.String,
+		},
+		{
+			name:   "Simple parameter call from pointer",
+			expr:   "fooptr.String",
+			params: map[string]interface{}{"fooptr": &foo},
+			want:   foo.String,
+		},
+		{
+			name:   "Simple parameter call",
+			expr:   `foo.String == "hi"`,
+			params: map[string]interface{}{"foo": foo},
+			want:   false,
+		},
+		{
+			name:   "Simple parameter call with modifier",
+			expr:   `foo.String + "hi"`,
+			params: map[string]interface{}{"foo": foo},
+			want:   foo.String + "hi",
+		},
+		{
+			name:   "Simple parameter call with array",
+			expr:   `foo.Nested.Slice.1`,
+			params: map[string]interface{}{"foo": foo},
+			want:   2.0,
+		},
+		{
+			name:   "Simple parameter call with array modifier",
+			expr:   `foo.Nested.Slice.1 + 1`,
+			params: map[string]interface{}{"foo": foo},
+			want:   3.0,
+		},
+		{
+			name:   "Nested parameter call",
+			expr:   "foo.Nested.Funk",
+			params: map[string]interface{}{"foo": foo},
+			want:   "funkalicious",
+		},
+		{
+			name:   "Nested map call",
+			expr:   `foo.Nested.Map.a`,
+			params: map[string]interface{}{"foo": foo},
+			want:   1.0,
+		},
+		{
+			name:   "Parameter call with + modifier",
+			expr:   "1 + foo.Int",
+			params: map[string]interface{}{"foo": foo},
+			want:   102.0,
+		},
+		{
+			name:   "Parameter call with && operator",
+			expr:   "true && foo.BoolFalse",
+			params: map[string]interface{}{"foo": foo},
+			want:   false,
 		},
 	}
 

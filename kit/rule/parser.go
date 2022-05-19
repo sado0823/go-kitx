@@ -142,7 +142,7 @@ func (p *Parser) read() ([]Token, error) {
 		}
 
 		var (
-			symbol       = Unknown
+			symbol       = UNKNOWN
 			parseToken   Token
 			supported    bool
 			parseTokenFn func(pos token.Pos, tok token.Token, lit string) (Token, error)
@@ -150,7 +150,7 @@ func (p *Parser) read() ([]Token, error) {
 		)
 
 		if tok == token.IDENT {
-			if beforeToken.Symbol() == Func {
+			if beforeToken.Symbol() == FUNC {
 				inputCustomFn, okInput := p.option.customFns[lit]
 				buildInCustomFn, okBuildIn := _buildInCustomFn[lit]
 				if !okInput && !okBuildIn {
@@ -168,10 +168,41 @@ func (p *Parser) read() ([]Token, error) {
 				}
 			}
 
+			// like `foo.`, `foo.bar.` , must be accessor
+			if beforeToken.Symbol() == PERIOD {
+				before := beforeToken.(*tokenIdent)
+				withPeriodStr := fmt.Sprintf("%s%s", before.lit, lit)
+				before.lit = withPeriodStr
+				before.value = withPeriodStr
+				continue
+			}
+
 			// parse bool
 			if strings.ToUpper(lit) == "TRUE" || strings.ToUpper(lit) == "FALSE" {
-				symbol = Bool
+				symbol = BOOL
 				goto symbolStep
+			}
+		}
+
+		// like `foo`, `bar` + `.`, must be accessor
+		if tok == token.PERIOD {
+			if beforeToken.Symbol() == IDENT {
+				before := beforeToken.(*tokenIdent)
+				withPeriodStr := fmt.Sprintf("%s.", before.lit)
+				before.lit = withPeriodStr
+				before.value = withPeriodStr
+				continue
+			}
+		}
+
+		// like `.1`, `.2` ... must be accessor and try to get data from array with array index (foo.bar.1)
+		if tok == token.FLOAT && strings.LastIndex(lit, ".") == 0 {
+			if beforeToken.Symbol() == IDENT {
+				before := beforeToken.(*tokenIdent)
+				withPeriodStr := fmt.Sprintf("%s%s", before.lit, lit)
+				before.lit = withPeriodStr
+				before.value = withPeriodStr
+				continue
 			}
 		}
 
