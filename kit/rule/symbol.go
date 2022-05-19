@@ -8,18 +8,18 @@ import (
 )
 
 const (
-	Unknown Symbol = iota
-	Null
+	UNKNOWN Symbol = iota
+	NULL
 
 	literalBeg
-	Ident
-	Number
-	String
-	Bool
+	IDENT
+	NUMBER
+	STRING
+	BOOL
 	literalEnd
 
 	keywordBeg
-	Func
+	FUNC
 	keywordEnd
 
 	operatorBeg
@@ -68,17 +68,18 @@ const (
 	LPAREN // (
 	RPAREN // )
 
-	Comma // ,
+	COMMA  // ,
+	PERIOD // .
 	operatorEnd
 )
 
 func symbolPrecedence(symbol Symbol) int {
 	switch symbol {
-	case Null:
+	case NULL:
 		return 0
-	case Ident, Number, String, Bool:
+	case IDENT, NUMBER, STRING, BOOL:
 		return 1
-	case Func:
+	case FUNC:
 		return 2
 	case NOT, NEGATE:
 		return 3
@@ -96,7 +97,7 @@ func symbolPrecedence(symbol Symbol) int {
 		return 9
 	case SHL, SHR:
 		return 10
-	case Comma:
+	case COMMA:
 		return 11
 	}
 	return 1
@@ -109,11 +110,11 @@ func isOperator(symbol Symbol) bool { return operatorBeg < symbol && symbol < op
 func isKeyword(symbol Symbol) bool { return keywordBeg < symbol && symbol < keywordEnd }
 
 var token2Symbol = map[token.Token]Symbol{
-	token.FUNC:   Func,
-	token.IDENT:  Ident,
-	token.INT:    Number,
-	token.FLOAT:  Number,
-	token.STRING: String,
+	token.FUNC:   FUNC,
+	token.IDENT:  IDENT,
+	token.INT:    NUMBER,
+	token.FLOAT:  NUMBER,
+	token.STRING: STRING,
 
 	token.LAND: LAND, // &&
 	token.LOR:  LOR,  // ||
@@ -142,11 +143,11 @@ var token2Symbol = map[token.Token]Symbol{
 	token.LPAREN: LPAREN, // (
 	token.RPAREN: RPAREN, // )
 
-	token.COMMA: Comma, // ,
+	token.COMMA: COMMA, // ,
 }
 
 var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (Token, error){
-	Func: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+	FUNC: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		return &tokenFunc{
 			baseToken: baseToken{
 				pos:    pos,
@@ -157,7 +158,7 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 			},
 		}, nil
 	},
-	Ident: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+	IDENT: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		return &tokenIdent{
 			baseToken: baseToken{
 				pos:    pos,
@@ -168,7 +169,7 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 			},
 		}, nil
 	},
-	Comma: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+	COMMA: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		return &tokenSeparator{
 			baseToken: baseToken{
 				pos:    pos,
@@ -435,7 +436,7 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 			},
 		}, nil
 	},
-	Number: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+	NUMBER: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		ret := new(tokenNumber)
 		var value interface{}
 		if tok == token.INT {
@@ -461,7 +462,7 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 		}
 		return ret, nil
 	},
-	Bool: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+	BOOL: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		var v bool
 		if strings.ToUpper(lit) == "TRUE" {
 			v = true
@@ -476,7 +477,7 @@ var symbol2Token = map[Symbol]func(pos token.Pos, tok token.Token, lit string) (
 			},
 		}, nil
 	},
-	String: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
+	STRING: func(pos token.Pos, tok token.Token, lit string) (Token, error) {
 		v, err := strconv.Unquote(lit)
 		if err != nil {
 			return nil, fmt.Errorf("invalid string input, err=%+v, expr=%s, pos=%v", err, tok.String(), lit)

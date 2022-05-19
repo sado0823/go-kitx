@@ -30,9 +30,9 @@ func (t *tokenNOT) SymbolFn() SymbolFn {
 
 func (t *tokenNOT) CanNext(token Token) error {
 	validNextKinds := []Symbol{
-		Ident,
-		Bool,
-		Func,
+		IDENT,
+		BOOL,
+		FUNC,
 		LPAREN,
 		NOT,
 	}
@@ -68,8 +68,8 @@ func (t *tokenNEGATE) SymbolFn() SymbolFn {
 
 func (t *tokenNEGATE) CanNext(token Token) error {
 	validNextKinds := []Symbol{
-		Number,
-		Func,
+		NUMBER,
+		FUNC,
 		LPAREN,
 	}
 

@@ -17,11 +17,11 @@ func (t *tokenHackLPAREN) CanNext(token Token) error {
 	validNextKinds := []Symbol{
 		NOT,    // !
 		NEGATE, // -1,-2,-3...
-		Number,
-		Bool,
-		Ident,
-		Func,
-		String,
+		NUMBER,
+		BOOL,
+		IDENT,
+		FUNC,
+		STRING,
 		LPAREN,
 		RPAREN,
 	}
@@ -65,12 +65,12 @@ func (t *tokenHackRPAREN) CanNext(token Token) error {
 		LAND, // &&
 		LOR,  // ||
 
-		Number,
-		Bool,
-		Ident,
-		String,
+		NUMBER,
+		BOOL,
+		IDENT,
+		STRING,
 		RPAREN,
-		Comma,
+		COMMA,
 	}
 
 	return t.canRunNext(validNextKinds, token)
