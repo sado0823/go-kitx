@@ -24,8 +24,9 @@ __supported operator__
 * **recursive params call with `.`**: `map.mapKey.mapKey.arrayIndex.structFiledName` (foo.bar.2.Name)
 
 * Link
-    * [See Example Here]()
-    * [Check Unit Test Here]()
+    * [See Example Here](https://github.com/sado0823/go-kitx/blob/master/kit/rule/example_test.go)
+    * [See Unit Test Here](https://github.com/sado0823/go-kitx/blob/master/kit/rule/rule_params_test.go)
+
 ##### ExampleDo
 ```go
 import (
