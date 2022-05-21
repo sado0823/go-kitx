@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -13,8 +14,24 @@ func (t *tokenEQL) Symbol() Symbol {
 	return EQL
 }
 
+func (t *tokenEQL) LeftCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param interface{}) error {
+		leftT, rightT, ok := typeEqual(left, right)
+		if !ok {
+			return fmt.Errorf("tokenEQL left type=%s should be equal to right type=%s", leftT.String(), rightT)
+		}
+		return nil
+	}
+}
+
+func (t *tokenEQL) RightCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param interface{}) error {
+		return nil
+	}
+}
+
 func (t *tokenEQL) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return reflect.DeepEqual(left, right), nil
 	}
 }
@@ -28,8 +45,24 @@ func (t *tokenNEQ) Symbol() Symbol {
 	return NEQ
 }
 
+func (t *tokenNEQ) LeftCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param interface{}) error {
+		leftT, rightT, ok := typeEqual(left, right)
+		if !ok {
+			return fmt.Errorf("tokenEQL left type=%s should be equal to right type=%s", leftT.String(), rightT)
+		}
+		return nil
+	}
+}
+
+func (t *tokenNEQ) RightCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param interface{}) error {
+		return nil
+	}
+}
+
 func (t *tokenNEQ) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return !reflect.DeepEqual(left, right), nil
 	}
 }
@@ -44,7 +77,7 @@ func (t *tokenGTR) Symbol() Symbol {
 }
 
 func (t *tokenGTR) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) > right.(float64), nil
 	}
 }
@@ -59,7 +92,7 @@ func (t *tokenGEQ) Symbol() Symbol {
 }
 
 func (t *tokenGEQ) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) >= right.(float64), nil
 	}
 }
@@ -74,7 +107,7 @@ func (t *tokenLSS) Symbol() Symbol {
 }
 
 func (t *tokenLSS) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) < right.(float64), nil
 	}
 }
@@ -89,7 +122,7 @@ func (t *tokenLEQ) Symbol() Symbol {
 }
 
 func (t *tokenLEQ) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) <= right.(float64), nil
 	}
 }

@@ -9,9 +9,9 @@ import (
 type (
 	Symbol int64
 
-	SymbolFn func(left, right interface{}, param map[string]interface{}) (interface{}, error)
+	SymbolFn func(left, right interface{}, param interface{}) (interface{}, error)
 
-	ParamCheckFn func(left, right interface{}, param map[string]interface{}) error
+	ParamCheckFn func(left, right interface{}, param interface{}) error
 
 	Token interface {
 		Pos() token.Pos
@@ -31,7 +31,7 @@ type (
 )
 
 func getLiteralFn(literal interface{}) SymbolFn {
-	return func(left interface{}, right interface{}, parameters map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return literal, nil
 	}
 }
@@ -49,7 +49,7 @@ func (t *tokenIdent) Symbol() Symbol {
 }
 
 func (t *tokenIdent) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		var (
 			selection interface{} = param
 			keys                  = strings.Split(t.lit, ".")
@@ -59,7 +59,7 @@ func (t *tokenIdent) SymbolFn() SymbolFn {
 		for _, key := range keys {
 			selection, ok = reflectSelect(key, selection)
 			if !ok {
-				return nil, fmt.Errorf("IDENT param not found:%s", t.lit)
+				return nil, fmt.Errorf("IDENT param(%s) NOT FOUND", t.lit)
 			}
 		}
 
@@ -135,7 +135,7 @@ func (t *tokenFunc) parseParams2Arr(arr []interface{}, v interface{}) []interfac
 }
 
 func (t *tokenFunc) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 
 		fn, ok := t.value.(CustomFn)
 		if !ok || fn == nil {
@@ -143,7 +143,7 @@ func (t *tokenFunc) SymbolFn() SymbolFn {
 		}
 
 		if right == nil {
-			return fn()
+			return fn(param)
 		}
 
 		logger.Printf("func right %v, %T \n", right, right)
@@ -151,7 +151,7 @@ func (t *tokenFunc) SymbolFn() SymbolFn {
 		params := make([]interface{}, 0)
 
 		params = t.parseParams2Arr(params, right)
-		return fn(params...)
+		return fn(param, params...)
 	}
 }
 
@@ -175,7 +175,7 @@ func (t *tokenSeparator) Symbol() Symbol {
 }
 
 func (t *tokenSeparator) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		var ret []interface{}
 
 		switch left := left.(type) {
@@ -270,6 +270,8 @@ func (t *tokenString) CanNext(token Token) error {
 		NEQ,    // !=
 		RPAREN, // )
 		ADD,    // +
+		LAND,   // &&
+		LOR,    // ||
 	}
 
 	return t.canRunNext(validNextKinds, token)
@@ -318,7 +320,7 @@ func (t *tokenNull) Symbol() Symbol {
 }
 
 func (t *tokenNull) SymbolFn() SymbolFn {
-	return func(left interface{}, right interface{}, parameters map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return right, nil
 	}
 }

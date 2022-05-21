@@ -20,7 +20,7 @@ func test() {
 
 - [x] [**ast rule engine**](https://github.com/sado0823/go-kitx/tree/master/kit/rule)
 
-__supported operator__ 
+__supported operator__
 
 * **comparator**: `>` `>=` `<` `<=` `==`
 
@@ -36,10 +36,15 @@ __supported operator__
 
 * **logic**: `&&` `||`
 
-* **others**: `(` `)` `,` `func`(do func call with build in function and custom function)
+* **func call**: `(` `)` `,` `func`(do func call with build in function and custom function)
 
-* **params type**: `Ident` `Number` `String` `Bool` (DO Not support `array` `func` `struct`)
+* **params type**: `Ident` `Number` `String` `Bool` `array`, `struct` (DO Not support `func` )
 
+* **recursive params call with `.`**: `map.mapKey.mapKey.arrayIndex.structFiledName` (foo.bar.2.Name)
+
+* Link
+  * [See Example Here]()
+  * [Check Unit Test Here]()
 
 ```go
 // example

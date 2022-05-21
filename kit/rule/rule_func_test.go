@@ -28,7 +28,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Single function",
 			expr: "func foo()",
-			extension: Function("foo", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("foo", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return true, nil
 			}),
 
@@ -37,7 +37,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Func with argument",
 			expr: "func passthrough(1)",
-			extension: Function("passthrough", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("passthrough", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return arguments[0], nil
 			}),
 			want: 1.0,
@@ -45,7 +45,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Func with arguments",
 			expr: "func passthrough(1, 2)",
-			extension: Function("passthrough", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("passthrough", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return arguments[0].(float64) + arguments[1].(float64), nil
 			}),
 			want: 3.0,
@@ -53,7 +53,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Nested function with operatorPrecedence",
 			expr: "func sum(1, func sum(2, 3), 2 + 2, 2 * 2)",
-			extension: Function("sum", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("sum", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				sum := 0.0
 				for _, v := range arguments {
 					sum += v.(float64)
@@ -65,7 +65,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Empty function and modifier, compared",
 			expr: "func numeric()-1 > 0",
-			extension: Function("numeric", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("numeric", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return 2.0, nil
 			}),
 			want: true,
@@ -73,7 +73,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Empty function comparator",
 			expr: "func numeric() > 0",
-			extension: Function("numeric", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("numeric", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return 2.0, nil
 			}),
 			want: true,
@@ -82,7 +82,7 @@ func Test_Func(t *testing.T) {
 
 			name: "Empty function logical operator",
 			expr: "func success() && !false",
-			extension: Function("success", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("success", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return true, nil
 			}),
 			want: true,
@@ -90,7 +90,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Empty function with prefix",
 			expr: "-func ten()",
-			extension: Function("ten", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("ten", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return 10.0, nil
 			}),
 			want: -10.0,
@@ -98,7 +98,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Empty function as part of chain",
 			expr: "10 - func numeric() - 2",
-			extension: Function("numeric", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("numeric", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return 5.0, nil
 			}),
 			want: 3.0,
@@ -106,7 +106,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Enclosed empty function with modifier and comparator (#28)",
 			expr: "(func ten() - 1) > 3",
-			extension: Function("ten", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("ten", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return 10.0, nil
 			}),
 			want: true,
@@ -114,7 +114,7 @@ func Test_Func(t *testing.T) {
 		{
 			name: "Variadic",
 			expr: `func sum(1,2,3,4)`,
-			extension: Function("sum", func(arguments ...interface{}) (interface{}, error) {
+			extension: Function("sum", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				sum := 0.
 				for _, a := range arguments {
 					sum += a.(float64)

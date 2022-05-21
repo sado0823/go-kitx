@@ -8,7 +8,7 @@ type tokenNOT struct {
 }
 
 func (t *tokenNOT) RightCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
+	return func(left, right interface{}, param interface{}) error {
 		switch right.(type) {
 		case bool:
 			return nil
@@ -23,7 +23,7 @@ func (t *tokenNOT) Symbol() Symbol {
 }
 
 func (t *tokenNOT) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return !right.(bool), nil
 	}
 }
@@ -49,7 +49,7 @@ func (t *tokenNEGATE) Symbol() Symbol {
 }
 
 func (t *tokenNEGATE) RightCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
+	return func(left, right interface{}, param interface{}) error {
 		_, ok1 := right.(int)
 		_, ok2 := right.(float64)
 		if !ok1 && !ok2 {
@@ -61,7 +61,7 @@ func (t *tokenNEGATE) RightCheckFn() ParamCheckFn {
 }
 
 func (t *tokenNEGATE) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return -right.(float64), nil
 	}
 }

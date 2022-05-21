@@ -5,6 +5,21 @@ import (
 	"strconv"
 )
 
+func typeEqual(x, y interface{}) (xT, yT reflect.Type, ok bool) {
+	xT = reflect.TypeOf(x)
+	yT = reflect.TypeOf(y)
+
+	return xT, yT, xT.Kind() == yT.Kind()
+}
+
+func isString(value interface{}) bool {
+	switch value.(type) {
+	case string:
+		return true
+	}
+	return false
+}
+
 func convertToFloat(o interface{}) (float64, bool) {
 	if i, ok := o.(float64); ok {
 		return i, true

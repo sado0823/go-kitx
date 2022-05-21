@@ -66,24 +66,20 @@ type comparableBase struct {
 }
 
 func (t *comparableBase) LeftCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
-		leftT := fmt.Sprintf("%T", left)
-		rightT := fmt.Sprintf("%T", right)
-		if leftT != rightT {
-			return fmt.Errorf("left type=%s should be equal to right type=%s", leftT, rightT)
-
+	return func(left, right interface{}, param interface{}) error {
+		_, ok := convertToFloat(left)
+		if !ok {
+			return fmt.Errorf("left should be a Number, but got %T, value=%v", left, left)
 		}
 		return nil
 	}
 }
 
 func (t *comparableBase) RightCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
-		leftT := fmt.Sprintf("%T", left)
-		rightT := fmt.Sprintf("%T", right)
-		if leftT != rightT {
-			return fmt.Errorf("left type=%s should be equal right type=%s", leftT, rightT)
-
+	return func(left, right interface{}, param interface{}) error {
+		_, ok := convertToFloat(right)
+		if !ok {
+			return fmt.Errorf("right should be a Number, but got %T, value=%v", right, right)
 		}
 		return nil
 	}
@@ -110,7 +106,7 @@ type boolBase struct {
 }
 
 func (t *boolBase) LeftCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
+	return func(left, right interface{}, param interface{}) error {
 		switch left.(type) {
 		case bool:
 			return nil
@@ -121,7 +117,7 @@ func (t *boolBase) LeftCheckFn() ParamCheckFn {
 }
 
 func (t *boolBase) RightCheckFn() ParamCheckFn {
-	return func(left, right interface{}, param map[string]interface{}) error {
+	return func(left, right interface{}, param interface{}) error {
 		switch right.(type) {
 		case bool:
 			return nil

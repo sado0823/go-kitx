@@ -1,6 +1,9 @@
 package rule
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // +
 type tokenADD struct {
@@ -11,21 +14,33 @@ func (t *tokenADD) Symbol() Symbol {
 	return ADD
 }
 
+func (t *tokenADD) LeftCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param interface{}) error {
+		_, ok := convertToFloat(left)
+		if !isString(left) && !ok {
+			return fmt.Errorf("add left should be a Number or String, but got %T, value=%v", left, left)
+		}
+		return nil
+	}
+}
+
+func (t *tokenADD) RightCheckFn() ParamCheckFn {
+	return func(left, right interface{}, param interface{}) error {
+		_, ok := convertToFloat(right)
+		if !isString(right) && !ok {
+			return fmt.Errorf("add right should be a Number or String, but got %T, value=%v", right, right)
+		}
+		return nil
+	}
+}
+
 func (t *tokenADD) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		l1, ok1 := left.(float64)
-		r1, ok2 := right.(float64)
-		if ok1 && ok2 {
-			return l1 + r1, nil
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
+		if isString(left) || isString(right) {
+			return fmt.Sprintf("%v%v", left, right), nil
 		}
 
-		l2, ok1 := left.(string)
-		r2, ok2 := right.(string)
-		if ok1 && ok2 {
-			return l2 + r2, nil
-		}
-
-		return nil, fmt.Errorf("tokenADD unsupported type to do add, left=%v,right=%v", left, right)
+		return left.(float64) + right.(float64), nil
 	}
 }
 
@@ -39,7 +54,7 @@ func (t *tokenSUB) Symbol() Symbol {
 }
 
 func (t *tokenSUB) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) - right.(float64), nil
 	}
 }
@@ -54,7 +69,7 @@ func (t *tokenMUL) Symbol() Symbol {
 }
 
 func (t *tokenMUL) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) * right.(float64), nil
 	}
 }
@@ -69,7 +84,7 @@ func (t *tokenQUO) Symbol() Symbol {
 }
 
 func (t *tokenQUO) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(float64) / right.(float64), nil
 	}
 }
@@ -84,7 +99,7 @@ func (t *tokenREM) Symbol() Symbol {
 }
 
 func (t *tokenREM) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
-		return float64(uint64(left.(float64)) % uint64(right.(float64))), nil
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
+		return math.Mod(left.(float64), right.(float64)), nil
 	}
 }

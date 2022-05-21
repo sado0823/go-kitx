@@ -10,7 +10,7 @@ func (t *tokenAND) Symbol() Symbol {
 }
 
 func (t *tokenAND) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return float64(int64(left.(float64)) & int64(right.(float64))), nil
 	}
 }
@@ -25,7 +25,7 @@ func (t *tokenOR) Symbol() Symbol {
 }
 
 func (t *tokenOR) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return float64(int64(left.(float64)) | int64(right.(float64))), nil
 	}
 }
@@ -40,7 +40,7 @@ func (t *tokenXOR) Symbol() Symbol {
 }
 
 func (t *tokenXOR) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return float64(int64(left.(float64)) ^ int64(right.(float64))), nil
 	}
 }
@@ -55,7 +55,7 @@ func (t *tokenSHL) Symbol() Symbol {
 }
 
 func (t *tokenSHL) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return float64(uint64(left.(float64)) << uint64(right.(float64))), nil
 	}
 }
@@ -70,7 +70,7 @@ func (t *tokenSHR) Symbol() Symbol {
 }
 
 func (t *tokenSHR) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return float64(uint64(left.(float64)) >> uint64(right.(float64))), nil
 	}
 }

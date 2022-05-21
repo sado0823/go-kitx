@@ -40,7 +40,7 @@ func Test_Params(t *testing.T) {
 		name   string
 		expr   string
 		want   interface{}
-		params map[string]interface{}
+		params interface{}
 	}{
 		{
 			name: "Single parameter modified by constant",
@@ -114,6 +114,57 @@ func Test_Params(t *testing.T) {
 			name: "Comparator after closing clause",
 			expr: "(2 + 2) >= 4",
 			want: true,
+		},
+		{
+
+			name: "String concat with single string parameter",
+			expr: `foo + "bar"`,
+			params: map[string]interface{}{
+				"foo": "baz"},
+			want: "bazbar",
+		},
+		{
+
+			name: "String concat with multiple string parameter",
+			expr: "foo + bar",
+			params: map[string]interface{}{
+				"foo": "baz",
+				"bar": "quux",
+			},
+			want: "bazquux",
+		},
+		{
+
+			name: "String concat with float parameter",
+			expr: "foo + bar",
+			params: map[string]interface{}{
+				"foo": "baz",
+				"bar": 123.0,
+			},
+			want: "baz123",
+		},
+		{
+
+			name:   "Mixed multiple string concat",
+			expr:   `foo + 123 + "bar" + "true"`,
+			params: map[string]interface{}{"foo": "baz"},
+			want:   "baz123bartrue",
+		},
+		{
+
+			name: "Integer width spectrum",
+			expr: "uint8 + uint16 + uint32 + uint64 + int8 + int16 + int32 + int64",
+			params: map[string]interface{}{
+				"uint8":  uint8(0),
+				"uint16": uint16(0),
+				"uint32": uint32(0),
+				"uint64": uint64(0),
+				"int8":   int8(0),
+				"int16":  int16(0),
+				"int32":  int32(0),
+				"int64":  int64(0),
+			},
+			want: 0.0,
 		},
 		{
 

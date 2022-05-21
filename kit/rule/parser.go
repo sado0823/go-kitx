@@ -74,7 +74,7 @@ func Check(ctx context.Context, expr string, options ...WithOption) (err error) 
 	return err
 }
 
-func Do(ctx context.Context, expr string, params map[string]interface{}, options ...WithOption) (interface{}, error) {
+func Do(ctx context.Context, expr string, params interface{}, options ...WithOption) (interface{}, error) {
 	parser, err := New(ctx, expr, options...)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func New(ctx context.Context, expr string, options ...WithOption) (parser *Parse
 	return p, err
 }
 
-func (p *Parser) Eval(params map[string]interface{}) (interface{}, error) {
+func (p *Parser) Eval(params interface{}) (interface{}, error) {
 	return doStage(p.stageV, params)
 }
 
@@ -354,7 +354,7 @@ func mirrorStageSubtree(stages []*stage) {
 	}
 }
 
-func doStage(stage *stage, parameters map[string]interface{}) (interface{}, error) {
+func doStage(stage *stage, parameters interface{}) (interface{}, error) {
 
 	if stage == nil {
 		return nil, nil

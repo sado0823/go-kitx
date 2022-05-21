@@ -10,7 +10,7 @@ func (t *tokenLOR) Symbol() Symbol {
 }
 
 func (t *tokenLOR) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(bool) || right.(bool), nil
 	}
 }
@@ -25,7 +25,7 @@ func (t *tokenLAND) Symbol() Symbol {
 }
 
 func (t *tokenLAND) SymbolFn() SymbolFn {
-	return func(left, right interface{}, param map[string]interface{}) (interface{}, error) {
+	return func(left, right interface{}, param interface{}) (interface{}, error) {
 		return left.(bool) && right.(bool), nil
 	}
 }
