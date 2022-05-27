@@ -142,8 +142,18 @@ func (t *tokenFunc) SymbolFn() SymbolFn {
 			return nil, fmt.Errorf("invalid func, name=%s, type=%T, value=%v", t.lit, t.value, t.value)
 		}
 
+		wrap2Float := func(v interface{}, err error) (interface{}, error) {
+			if err != nil {
+				return v, err
+			}
+			if parse, ok := convertToFloat(v); ok {
+				return parse, nil
+			}
+			return v, nil
+		}
+
 		if right == nil {
-			return fn(param)
+			return wrap2Float(fn(param))
 		}
 
 		logger.Printf("func right %v, %T \n", right, right)
@@ -151,7 +161,7 @@ func (t *tokenFunc) SymbolFn() SymbolFn {
 		params := make([]interface{}, 0)
 
 		params = t.parseParams2Arr(params, right)
-		return fn(param, params...)
+		return wrap2Float(fn(param, params...))
 	}
 }
 

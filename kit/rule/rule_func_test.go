@@ -63,10 +63,18 @@ func Test_Func(t *testing.T) {
 			want: 14.0,
 		},
 		{
-			name: "Empty function and modifier, compared",
+			name: "Empty function and modifier, compared with float64",
 			expr: "func numeric()-1 > 0",
 			extension: Function("numeric", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
 				return 2.0, nil
+			}),
+			want: true,
+		},
+		{
+			name: "Empty function and modifier, compared with int",
+			expr: "func numeric()-1 > 0",
+			extension: Function("numeric", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
+				return 2, nil
 			}),
 			want: true,
 		},

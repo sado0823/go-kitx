@@ -44,13 +44,15 @@ func Test_New(t *testing.T) {
 
 func Test_Do(t *testing.T) {
 	//expr := `(foo - 90 > 0 ) && ( foo > 1 || foo <1 ) && foo > 1`
-	expr := `1+101%2*5`
+	expr := `func foo() + 1`
 	param := map[string]interface{}{
 		"foo": 5,
 		"bar": 6,
 	}
 
-	res, err := Do(context.Background(), expr, param)
+	res, err := Do(context.Background(), expr, param, WithCustomFn("foo", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
+		return 1, nil
+	}))
 	if err != nil {
 		panic(err)
 	}
