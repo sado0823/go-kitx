@@ -6,7 +6,7 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/sado0823/go-kitx/pkg/collection/reflect"
+	"github.com/sado0823/go-kitx/pkg/reflectx"
 )
 
 type (
@@ -60,7 +60,7 @@ func (t *tokenIdent) SymbolFn() SymbolFn {
 		)
 
 		for _, key := range keys {
-			selection, ok = reflect.PathSelect(context.Background(), key, selection)
+			selection, ok = reflectx.PathSelect(context.Background(), key, selection)
 			if !ok {
 				return nil, fmt.Errorf("IDENT param(%s) NOT FOUND", t.lit)
 			}

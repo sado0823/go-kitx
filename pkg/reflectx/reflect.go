@@ -1,4 +1,4 @@
-package reflect
+package reflectx
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-// PathSelect select key from path by reflect.
+// PathSelect select key from path by reflectx.
 //
 // Support for hierarchical connections of point; Support data type `Struct`(Should be Exported Field), `Map`, `Slice` , `Pointer`.
 //
