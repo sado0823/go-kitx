@@ -157,7 +157,7 @@ func (w *window) newBucket(startTime int64) *Bucket {
 type Bucket struct {
 	startTime int64
 	Sum       float64
-	Count     int
+	Count     int64
 }
 
 func (b *Bucket) add(v float64) {

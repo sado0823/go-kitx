@@ -169,7 +169,7 @@ func (w *window) resetOne(offset int) {
 
 type Bucket struct {
 	Sum   float64
-	Count int
+	Count int64
 }
 
 func (b *Bucket) add(v float64) {
