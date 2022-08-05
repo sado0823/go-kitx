@@ -2,9 +2,21 @@ package v2
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"sync"
 	"time"
 )
+
+var (
+	logger = log.New(os.Stdout, fmt.Sprintf("[DEBUG][pkg=rollingwindow/v2][%s] ", time.Now().Format(time.StampMilli)), log.Lshortfile)
+)
+
+func init() {
+	logger.SetFlags(0)
+	logger.SetOutput(io.Discard)
+}
 
 const unixTimeUnitOffset = int64(time.Millisecond / time.Nanosecond)
 
@@ -18,12 +30,12 @@ type (
 	ReduceFn func(*Bucket)
 
 	RollingWindow struct {
-		rw       sync.RWMutex
-		size     int
-		interval time.Duration
-		window   *window
-		offset   int
-		lastTime time.Time
+		rw             sync.RWMutex
+		size           int
+		eachBucketTime time.Duration
+		window         *window
+		offset         int
+		lastTime       time.Time
 
 		option *Option
 	}
@@ -36,7 +48,7 @@ func WithIgnoreCurrent() OptionFn {
 }
 
 // New 计算上次当前时间与上次时间差的窗口周期跨度(采用跨度span为标准), 返回跨度为1两侧的数据
-func New(size int, interval time.Duration, options ...OptionFn) *RollingWindow {
+func New(size int, eachBucketTime time.Duration, options ...OptionFn) *RollingWindow {
 	if size <= 0 {
 		panic("size must greater than 0")
 	}
@@ -47,12 +59,12 @@ func New(size int, interval time.Duration, options ...OptionFn) *RollingWindow {
 	}
 
 	return &RollingWindow{
-		rw:       sync.RWMutex{},
-		size:     size,
-		interval: interval,
-		window:   newWindow(size),
-		lastTime: time.Now(),
-		option:   op,
+		rw:             sync.RWMutex{},
+		size:           size,
+		eachBucketTime: eachBucketTime,
+		window:         newWindow(size),
+		lastTime:       time.Now(),
+		option:         op,
 	}
 }
 
@@ -92,23 +104,23 @@ func (r *RollingWindow) adjust(now time.Time) {
 	oldOffset := r.offset
 	// reset expired buckets
 	for i := 0; i < span; i++ {
-		fmt.Println("adjust reset offset: ", oldOffset+i+1, "sum: ", r.window.find(oldOffset+i+1).Sum)
+		logger.Println("adjust reset offset: ", oldOffset+i+1, "sum: ", r.window.find(oldOffset+i+1).Sum)
 		r.window.resetOne(oldOffset + i + 1)
 	}
 
 	newOffset := (oldOffset + span) % r.size
-	fmt.Println("adjust oldOffset: ", oldOffset, "newOffset: ", newOffset, "span: ", span, "diff: ", r.diffMilli(now))
+	logger.Println("adjust oldOffset: ", oldOffset, "newOffset: ", newOffset, "span: ", span, "diff: ", r.diffMilli(now))
 
 	nowMilli := r.milliByTime(now)
 	lastTimeMilli := r.milliByTime(r.lastTime)
-	adjustTime := nowMilli - (nowMilli-lastTimeMilli)%r.milliByDuration(r.interval)
+	adjustTime := nowMilli - (nowMilli-lastTimeMilli)%r.milliByDuration(r.eachBucketTime)
 
 	r.offset = newOffset
 	r.lastTime = time.UnixMilli(adjustTime)
 }
 
 func (r *RollingWindow) span(now time.Time) (span int) {
-	spanV := r.diffMilli(now) / r.milliByDuration(r.interval)
+	spanV := r.diffMilli(now) / r.milliByDuration(r.eachBucketTime)
 	if spanV >= 0 && spanV < int64(r.size) {
 		return int(spanV)
 	}

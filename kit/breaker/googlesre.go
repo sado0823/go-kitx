@@ -13,7 +13,7 @@ import (
 var ErrGoogleSreBreakOn = errors.New("google sre breaker is on")
 
 type (
-	GoogleSreOptionFn func(*googleSreOption)
+	googleSreOptionFn func(*googleSreOption)
 
 	googleSreOption struct {
 		windowTime  time.Duration
@@ -22,7 +22,7 @@ type (
 		protection  int
 	}
 
-	GoogleSre struct {
+	googleSre struct {
 		option *googleSreOption
 		rw     *rollingwindow.RollingWindow
 		lock   sync.Mutex
@@ -30,25 +30,25 @@ type (
 	}
 )
 
-func WithGoogleSreWindow(windowTime time.Duration) GoogleSreOptionFn {
+func withGoogleSreWindow(windowTime time.Duration) googleSreOptionFn {
 	return func(option *googleSreOption) {
 		option.windowTime = windowTime
 	}
 }
 
-func WithGoogleSreBucket(count int) GoogleSreOptionFn {
+func withGoogleSreBucket(count int) googleSreOptionFn {
 	return func(option *googleSreOption) {
 		option.bucketCount = count
 	}
 }
 
-func NewGoogleSre(options ...GoogleSreOptionFn) *GoogleSre {
+func newGoogleSre(options ...googleSreOptionFn) *googleSre {
 	op := defaultGoogleSreOption()
 	for i := range options {
 		options[i](op)
 	}
 
-	return &GoogleSre{
+	return &googleSre{
 		option: op,
 		rw:     rollingwindow.New(op.bucketCount, time.Duration(int64(op.windowTime)/int64(op.bucketCount))),
 		rand:   rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -64,46 +64,39 @@ func defaultGoogleSreOption() *googleSreOption {
 	}
 }
 
-func (g *GoogleSre) doReq(req func() error, reject func(err error) error, acceptable func(err error) bool) error {
-	if err := g.accept(); err != nil {
-		if reject != nil {
-			return reject(err)
-		}
-		return err
-	}
-
-	defer func() {
-		if e := recover(); e != nil {
-			g.fail()
-			panic(e)
-		}
-	}()
-
-	err := req()
-	if acceptable(err) {
-		g.success()
-	} else {
-		g.fail()
-	}
-	return err
+func (g *googleSre) MarkSuccess() {
+	g.rw.Add(1)
 }
 
-func (g *GoogleSre) accept() error {
+func (g *googleSre) MarkFail() {
+	// sum += 0, count++
+	g.rw.Add(0)
+}
+
+func (g *googleSre) Allow() error {
 	accepts, total := g.stat()
-	weight := g.option.sreK * float64(accepts)
+	weight := g.option.sreK*float64(accepts) + float64(g.option.protection)
+	// from 《google sre》
 	// sreK++ ==> dropRatio--
-	dropRatio := math.Max(0,
-		float64(total)-(float64(g.option.protection)+weight)/float64(total+1),
-	)
+	dropRatio := math.Max(0, (float64(total)-weight)/float64(total+1))
 
 	if g.shouldDrop(dropRatio) {
+		logger.Printf("accepts:%d, total:%d, dropRatio:%v", accepts, total, dropRatio)
 		return ErrGoogleSreBreakOn
 	}
 
 	return nil
 }
 
-func (g *GoogleSre) shouldDrop(dropRatio float64) (should bool) {
+func (g *googleSre) stat() (accepts, total int64) {
+	g.rw.Reduce(func(bucket *rollingwindow.Bucket) {
+		accepts += int64(bucket.Sum)
+		total += bucket.Count
+	})
+	return accepts, total
+}
+
+func (g *googleSre) shouldDrop(dropRatio float64) (should bool) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	if dropRatio <= 0 {
@@ -113,19 +106,26 @@ func (g *GoogleSre) shouldDrop(dropRatio float64) (should bool) {
 	return g.rand.Float64() < dropRatio
 }
 
-func (g *GoogleSre) success() {
-	g.rw.Add(1)
-}
+func (g *googleSre) doReq(req func() error, reject func(err error) error, acceptable func(err error) bool) error {
+	if err := g.Allow(); err != nil {
+		if reject != nil {
+			return reject(err)
+		}
+		return err
+	}
 
-func (g *GoogleSre) fail() {
-	// sum += 0, count++
-	g.rw.Add(0)
-}
+	defer func() {
+		if e := recover(); e != nil {
+			g.MarkFail()
+			panic(e)
+		}
+	}()
 
-func (g *GoogleSre) stat() (accepts, total int64) {
-	g.rw.Reduce(func(bucket *rollingwindow.Bucket) {
-		accepts += int64(bucket.Sum)
-		total += bucket.Count
-	})
-	return accepts, total
+	err := req()
+	if acceptable(err) {
+		g.MarkSuccess()
+	} else {
+		g.MarkFail()
+	}
+	return err
 }

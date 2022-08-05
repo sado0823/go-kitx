@@ -17,7 +17,7 @@ func Test_New(t *testing.T) {
 func Test_Add(t *testing.T) {
 	const (
 		size     = 3
-		interval = time.Millisecond * 300
+		interval = time.Millisecond * 100
 	)
 
 	rw := New(size, interval)
@@ -62,17 +62,17 @@ func Test_Add(t *testing.T) {
 	assert.Equal(t, []float64{18, 15, 15}, traverse())
 
 	wait(time.Millisecond * 300) // 660ms
-	assert.Equal(t, []float64{18, 0, 0}, traverse())
+	assert.Equal(t, []float64{0, 0, 0}, traverse())
 
 	wait(time.Millisecond * 100) // 760ms
 	rw.Add(1)
-	assert.Equal(t, []float64{18, 1, 0}, traverse())
-
-	wait(interval) // 1060ms
 	assert.Equal(t, []float64{0, 1, 0}, traverse())
 
-	wait(interval) // 1360ms
-	assert.Equal(t, []float64{0, 0, 0}, traverse())
+	wait(interval) // 860ms
+	assert.Equal(t, []float64{0, 1, 0}, traverse())
+
+	wait(interval) // 960ms
+	assert.Equal(t, []float64{0, 1, 0}, traverse())
 }
 
 func Test_Reduce(t *testing.T) {
@@ -85,10 +85,10 @@ func Test_Reduce(t *testing.T) {
 	}
 
 	rw := New(size, interval)
-	// 0
-	// 0 1
-	// 0 1 2
-	// 0 1 2 3
+	// bucket0: 0 = 0 (sleep)
+	// bucket1: 0+1 = 1 (sleep)
+	// bucket2: 0+1+2 = 3 (sleep)
+	// bucket3: 0+1+2+3 = 6
 	for x := 0; x < size; x++ {
 		for i := 0; i <= x; i++ {
 			rw.Add(float64(i))
@@ -102,5 +102,26 @@ func Test_Reduce(t *testing.T) {
 	rw.Reduce(func(bucket *Bucket) {
 		res += bucket.Sum
 	})
-	assert.EqualValues(t, 6, res)
+	assert.EqualValues(t, 10, res)
+}
+
+// Benchmark_RW-8   	 1136754	      1039 ns/op
+func Benchmark_RW(b *testing.B) {
+	const (
+		size     = 4
+		interval = time.Millisecond * 50
+	)
+	rw := New(size, interval)
+	b.ResetTimer()
+	for i := 0; i <= b.N; i++ {
+		if i%2 == 0 {
+			rw.Add(float64(i))
+		} else if i%100 == 0 {
+			rw.Reduce(func(bucket *Bucket) {
+				_ = bucket.Sum + float64(i)
+			})
+		} else if i%500 == 0 {
+			time.Sleep(time.Millisecond * 20)
+		}
+	}
 }

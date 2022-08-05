@@ -109,3 +109,24 @@ func Test_Reduce(t *testing.T) {
 		})
 	}
 }
+
+// Benchmark_RollingWindow-8   	17171872	        70.30 ns/op
+func Benchmark_RollingWindow(b *testing.B) {
+	const (
+		size     = 4
+		interval = time.Millisecond * 50
+	)
+	rw := New(size, interval)
+	b.ResetTimer()
+	for i := 0; i <= b.N; i++ {
+		if i%2 == 0 {
+			rw.Add(float64(i))
+		} else if i%100 == 0 {
+			rw.Reduce(func(bucket *Bucket) {
+				_ = bucket.Sum + float64(i)
+			})
+		} else if i%500 == 0 {
+			time.Sleep(time.Millisecond * 20)
+		}
+	}
+}
