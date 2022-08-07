@@ -5,54 +5,51 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	assert "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_WithCodeResponseWriter(t *testing.T) {
-	assert.Convey("Test_WithCodeResponseWriter", t, func() {
 
-		code := http.StatusServiceUnavailable
-		content := []byte(`Test_WithCodeResponseWriter`)
+	code := http.StatusServiceUnavailable
+	content := []byte(`Test_WithCodeResponseWriter`)
 
-		assert.Convey("GET", func() {
-			req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				codeW := &WithCodeResponseWriter{ResponseWriter: w}
+	t.Run("GET", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			codeW := &WithCodeResponseWriter{ResponseWriter: w}
 
-				codeW.Header().Set("x-test-get", "test-get")
-				codeW.WriteHeader(code)
-				assert.So(codeW.Code, assert.ShouldEqual, code)
-				_, err := codeW.Write(content)
-				assert.So(err, assert.ShouldBeNil)
-			})
-
-			resp := httptest.NewRecorder()
-			handler.ServeHTTP(resp, req)
-
-			assert.So(resp.Header().Get("x-test-get"), assert.ShouldEqual, "test-get")
-			assert.So(resp.Code, assert.ShouldEqual, code)
-			assert.So(resp.Body.String(), assert.ShouldEqual, string(content))
+			codeW.Header().Set("x-test-get", "test-get")
+			codeW.WriteHeader(code)
+			assert.Equal(t, code, codeW.Code)
+			_, err := codeW.Write(content)
+			assert.Nil(t, err)
 		})
 
-		assert.Convey("POST", func() {
-			req := httptest.NewRequest(http.MethodPost, "http://localhost", nil)
-			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				codeW := &WithCodeResponseWriter{ResponseWriter: w}
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
 
-				codeW.Header().Set("x-test-post", "test-post")
-				codeW.WriteHeader(code)
-				assert.So(codeW.Code, assert.ShouldEqual, code)
-				_, err := codeW.Write(content)
-				assert.So(err, assert.ShouldBeNil)
-			})
+		assert.Equal(t, "test-get", resp.Header().Get("x-test-get"))
+		assert.Equal(t, code, resp.Code)
+		assert.Equal(t, string(content), resp.Body.String())
+	})
 
-			resp := httptest.NewRecorder()
-			handler.ServeHTTP(resp, req)
+	t.Run("POST", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "http://localhost", nil)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			codeW := &WithCodeResponseWriter{ResponseWriter: w}
 
-			assert.So(resp.Header().Get("x-test-post"), assert.ShouldEqual, "test-post")
-			assert.So(resp.Code, assert.ShouldEqual, code)
-			assert.So(resp.Body.String(), assert.ShouldEqual, string(content))
+			codeW.Header().Set("x-test-post", "test-post")
+			codeW.WriteHeader(code)
+			assert.Equal(t, code, codeW.Code)
+			_, err := codeW.Write(content)
+			assert.Nil(t, err)
 		})
 
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+
+		assert.Equal(t, "test-post", resp.Header().Get("x-test-post"))
+		assert.Equal(t, code, resp.Code)
+		assert.Equal(t, string(content), resp.Body.String())
 	})
 }
