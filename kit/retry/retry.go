@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+const (
+	defaultMaxRetries  = 3
+	defaultMinWaitTime = time.Millisecond * 100
+	defaultMaxWaitTime = time.Millisecond * 2000
+)
+
 var (
 	once   sync.Once
 	random *rand.Rand
@@ -22,10 +28,9 @@ func init() {
 
 type (
 	options struct {
-		limit      int
-		interval   time.Duration
-		maxTime    time.Duration
-		acceptErrs map[error]struct{}
+		limit       int
+		minWaitTime time.Duration
+		maxWaitTime time.Duration
 	}
 
 	Option func(*options)
@@ -33,55 +38,71 @@ type (
 
 func WithLimit(n int) Option {
 	if n <= 0 {
-		n = 3
+		n = defaultMaxRetries
 	}
 	return func(o *options) {
 		o.limit = n
 	}
 }
 
-func WithInterval(duration time.Duration) Option {
-	if duration < 0 {
-		duration = time.Millisecond * 100
+func WithMin(min time.Duration) Option {
+	if min <= 0 {
+		min = defaultMinWaitTime
 	}
 	return func(o *options) {
-		o.interval = duration
+		o.minWaitTime = min
 	}
 }
 
-func Func(ctx context.Context, subject string, f func(ctx context.Context) error, opts ...Option) (err error) {
+func WithMax(max time.Duration) Option {
+	if max <= 0 {
+		max = defaultMaxWaitTime
+	}
+	return func(o *options) {
+		o.maxWaitTime = max
+	}
+}
+
+func Func(ctx context.Context, subject string, fn func(ctx context.Context) error, opts ...Option) (err error) {
 	o := &options{
-		limit:    3,
-		interval: time.Millisecond * 100,
+		limit:       defaultMaxRetries,
+		minWaitTime: defaultMinWaitTime,
+		maxWaitTime: defaultMaxWaitTime,
 	}
 	for _, op := range opts {
 		op(o)
 	}
 
-	for i := 0; i < o.limit; i++ {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			if i > 0 && o.interval > 0 {
-				time.Sleep(o.interval)
-			}
-		}
-
-		if err = f(ctx); err == nil {
+	for attempt := 0; attempt <= o.limit; attempt++ {
+		err = fn(ctx)
+		if err == nil {
 			break
 		}
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 
+		backoff := jitterBackoff(o.minWaitTime, o.maxWaitTime, attempt)
+
+		t := time.NewTimer(backoff)
+		select {
+		case <-t.C:
+		case <-ctx.Done():
+			t.Stop()
+			return ctx.Err()
+		}
 	}
-	return
+
+	return err
 }
 
 // Loop RetryInfinite
-func Loop(ctx context.Context, subject string, fn func(ctx context.Context) error, opts ...Option) {
+func Loop(ctx context.Context, subject string, fn func(ctx context.Context) error, opts ...Option) error {
 	var (
 		err error
 		o   = &options{
-			interval: time.Millisecond * 100,
+			minWaitTime: defaultMinWaitTime,
+			maxWaitTime: defaultMaxWaitTime,
 		}
 	)
 
@@ -89,27 +110,35 @@ func Loop(ctx context.Context, subject string, fn func(ctx context.Context) erro
 		op(o)
 	}
 
-	var counter int64
-
+	var counter int
 	for {
-		if counter > 0 && o.interval > 0 {
-			time.Sleep(o.interval)
+		err = fn(ctx)
+		if err == nil {
+			break
+		}
+		if ctx.Err() != nil {
+			return ctx.Err()
 		}
 
-		if err = fn(ctx); err == nil {
-			break
+		backoff := jitterBackoff(o.minWaitTime, o.maxWaitTime, counter)
+
+		t := time.NewTimer(backoff)
+		select {
+		case <-t.C:
+		case <-ctx.Done():
+			t.Stop()
+			return ctx.Err()
 		}
 
 		counter++
-
 	}
 
-	return
+	return nil
 }
 
 // https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
 func jitterBackoff(min, max time.Duration, attempt int) time.Duration {
-	res := randDurationV1(min, max, attempt)
+	res := deCorrelatedJitter(min, max, attempt)
 	if res < min {
 		return min
 	}
@@ -117,7 +146,8 @@ func jitterBackoff(min, max time.Duration, attempt int) time.Duration {
 	return res
 }
 
-func randDurationV1(min, max time.Duration, attempt int) time.Duration {
+// sleep := tmp / 2 + rand_between(0,tmp/2)
+func deCorrelatedJitter(min, max time.Duration, attempt int) time.Duration {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -133,8 +163,7 @@ func randDurationV1(min, max time.Duration, attempt int) time.Duration {
 
 // sleep := tmp / 2 + rand_between(0,tmp/2)
 // sleep := min(cap,rand_between(base,sleep*3))
-// Decorrelated Jitter
-func randDurationV2(min, max time.Duration, attempt int) time.Duration {
+func deCorrelatedJitterMoreRound(min, max time.Duration, attempt int) time.Duration {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -143,8 +172,8 @@ func randDurationV2(min, max time.Duration, attempt int) time.Duration {
 	tmp := math.Min(capV, base*math.Exp2(float64(attempt)))
 
 	d := tmp / 2
-	sleepRand := random.Int63n(int64(d))
-	sleepBase := int64(d) + sleepRand
+	jitter := random.Int63n(int64(d))
+	sleepBase := int64(d) + jitter
 	loop := 3
 	for loop < 3 {
 		maxSleep := sleepBase * 3
