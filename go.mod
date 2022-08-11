@@ -11,4 +11,5 @@ require (
 	github.com/goccy/go-graphviz v0.0.9
 	github.com/golang/protobuf v1.5.2 // indirect
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
+	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664
 )

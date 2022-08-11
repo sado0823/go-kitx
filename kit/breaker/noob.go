@@ -3,10 +3,6 @@ package breaker
 type noob struct {
 }
 
-func (g *noob) Name() string {
-	return "noob-breaker"
-}
-
 func (g *noob) MarkSuccess() {
 }
 
