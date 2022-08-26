@@ -30,6 +30,7 @@ type (
 		Allow() error
 		MarkSuccess()
 		MarkFail()
+		DoWithAcceptable(req func() error, acceptable func(err error) bool) error
 	}
 
 	OptionFn func(*wrapBreaker)

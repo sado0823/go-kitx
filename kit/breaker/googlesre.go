@@ -106,6 +106,10 @@ func (g *googleSre) shouldDrop(dropRatio float64) (should bool) {
 	return g.rand.Float64() < dropRatio
 }
 
+func (g *googleSre) DoWithAcceptable(req func() error, acceptable func(err error) bool) error {
+	return g.doReq(req, nil, acceptable)
+}
+
 func (g *googleSre) doReq(req func() error, reject func(err error) error, acceptable func(err error) bool) error {
 	if err := g.Allow(); err != nil {
 		if reject != nil {

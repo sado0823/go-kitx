@@ -49,13 +49,13 @@ type (
 	}
 )
 
-func WithAlign() PeriodOption {
+func WithPeriodAlign() PeriodOption {
 	return func(p *Period) {
 		p.align = true
 	}
 }
 
-func WithPrefix(prefix string) PeriodOption {
+func WithPeriodPrefix(prefix string) PeriodOption {
 	return func(p *Period) {
 		p.keyPrefix = prefix
 	}
@@ -73,8 +73,8 @@ func NewPeriod(seconds, quota int, store *redis.Redis, options ...PeriodOption) 
 	return limiter
 }
 
-func (p *Period) TakeCtx(ctx context.Context, key string) (PeriodCode, error) {
-	resp, err := p.store.EvalCtx(ctx, periodScript, []string{p.keyPrefix + key}, []string{
+func (p *Period) Take(ctx context.Context, key string) (PeriodCode, error) {
+	resp, err := p.store.Eval(ctx, periodScript, []string{p.keyPrefix + key}, []string{
 		strconv.Itoa(p.quota),
 		strconv.Itoa(p.calcExpireSeconds()),
 	})
