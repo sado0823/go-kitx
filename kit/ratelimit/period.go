@@ -3,9 +3,10 @@ package ratelimit
 import (
 	"context"
 	"errors"
-	"github.com/sado0823/go-kitx/kit/store/redis"
 	"strconv"
 	"time"
+
+	"github.com/sado0823/go-kitx/kit/store/redis"
 )
 
 const periodScript = `local limit = tonumber(ARGV[1])
@@ -62,6 +63,10 @@ func WithPeriodPrefix(prefix string) PeriodOption {
 }
 
 func NewPeriod(seconds, quota int, store *redis.Redis, options ...PeriodOption) *Period {
+	if store == nil {
+		panic("invalid period param")
+	}
+
 	limiter := &Period{
 		period: seconds,
 		quota:  quota,

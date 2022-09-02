@@ -14,4 +14,5 @@ require (
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664
+	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
 )

@@ -9,6 +9,10 @@ import (
 	"github.com/sado0823/go-kitx/kit/breaker"
 )
 
+const (
+	Nil = rdsV8.Nil
+)
+
 type (
 	Redis struct {
 		Addr string
