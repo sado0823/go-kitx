@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sado0823/go-kitx/kit/log"
 	rollingwindow "github.com/sado0823/go-kitx/pkg/rollingwindow/v2"
 )
 
@@ -81,7 +82,7 @@ func (g *googleSre) Allow() error {
 	dropRatio := math.Max(0, (float64(total)-weight)/float64(total+1))
 
 	if g.shouldDrop(dropRatio) {
-		logger.Printf("accepts:%d, total:%d, dropRatio:%v", accepts, total, dropRatio)
+		log.Errorf("accepts:%d, total:%d, dropRatio:%v", accepts, total, dropRatio)
 		return ErrGoogleSreBreakOn
 	}
 

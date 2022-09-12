@@ -1,12 +1,7 @@
 package breaker
 
 import (
-	"fmt"
-	"io"
-	"log"
-	"os"
 	"sync"
-	"time"
 
 	"github.com/sado0823/go-kitx/pkg/stringx"
 )
@@ -15,15 +10,6 @@ var (
 	lock     sync.RWMutex
 	breakers = make(map[string]Breaker)
 )
-
-var (
-	logger = log.New(os.Stdout, fmt.Sprintf("[DEBUG][pkg=breaker][%s] ", time.Now().Format(time.StampMilli)), log.Lshortfile)
-)
-
-func init() {
-	logger.SetFlags(0)
-	logger.SetOutput(io.Discard)
-}
 
 type (
 	Breaker interface {

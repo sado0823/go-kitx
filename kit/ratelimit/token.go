@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/sado0823/go-kitx/kit/log"
 	"github.com/sado0823/go-kitx/kit/store/redis"
 
 	xrate "golang.org/x/time/rate"
@@ -93,7 +94,7 @@ func (t *Token) AllowN(ctx context.Context, now time.Time, n int) bool {
 func (t *Token) reserveN(ctx context.Context, now time.Time, n int) bool {
 	select {
 	case <-ctx.Done():
-		logger.Printf("fail to use rate limiter: %s", ctx.Err())
+		log.Errorf("fail to use rate limiter: %s", ctx.Err())
 		return false
 	default:
 	}
@@ -118,19 +119,19 @@ func (t *Token) reserveN(ctx context.Context, now time.Time, n int) bool {
 		return false
 	}
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-		logger.Printf("fail to use rate limiter: %s", err)
+		log.Errorf("fail to use rate limiter: %s", err)
 		return false
 	}
 
 	if err != nil {
-		logger.Printf("token limit eval err:%+v,resp:%v, use in-process limit instead", err, eval)
+		log.Errorf("token limit eval err:%+v,resp:%v, use in-process limit instead", err, eval)
 		t.startMonitor()
 		return t.degrade.AllowN(now, n)
 	}
 
 	code, ok := eval.(int64)
 	if !ok {
-		logger.Printf("token limit eval err:%+v,resp:%v, use in-process limit instead", err, eval)
+		log.Errorf("token limit eval err:%+v,resp:%v, use in-process limit instead", err, eval)
 		t.startMonitor()
 		return t.degrade.AllowN(now, n)
 	}

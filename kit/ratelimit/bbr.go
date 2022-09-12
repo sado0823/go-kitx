@@ -3,9 +3,8 @@ package ratelimit
 import (
 	"errors"
 	"fmt"
-	"log"
+	"github.com/sado0823/go-kitx/kit/log"
 	"math"
-	"os"
 	"sync/atomic"
 	"time"
 
@@ -15,15 +14,6 @@ import (
 	"github.com/sado0823/go-kitx/pkg/sysx"
 	"github.com/sado0823/go-kitx/pkg/timex"
 )
-
-var (
-	logger = log.New(os.Stdout, fmt.Sprintf("[DEBUG][pkg=ratelimit][%s] ", time.Now().Format(time.StampMilli)), log.Lshortfile)
-)
-
-func init() {
-	//logger.SetFlags(0)
-	//logger.SetOutput(io.Discard)
-}
 
 const (
 	bbrBuckets         = 50
@@ -166,7 +156,7 @@ func (b *BBR) shouldDrop() bool {
 			msg := fmt.Sprintf(
 				"dropreq, cpu: %d, maxPass: %d, minRt: %.2f, hot: %t, flying: %d, ewmaFlying: %.2f, windows:%d",
 				sysx.CpuUsage(), b.maxPass(), b.minRt(), b.stillHot(), flying, avgFlying, b.windows)
-			logger.Println(msg)
+			log.Error(msg)
 			return true
 		}
 	}
