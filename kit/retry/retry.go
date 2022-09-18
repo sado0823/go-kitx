@@ -17,7 +17,6 @@ const (
 var (
 	once   sync.Once
 	random *rand.Rand
-	lock   sync.Mutex
 )
 
 func init() {
@@ -148,8 +147,6 @@ func jitterBackoff(min, max time.Duration, attempt int) time.Duration {
 
 // sleep := tmp / 2 + rand_between(0,tmp/2)
 func deCorrelatedJitter(min, max time.Duration, attempt int) time.Duration {
-	lock.Lock()
-	defer lock.Unlock()
 
 	base, capV := float64(min), float64(max)
 	// tmp := min(cap,base * 2 ** attempt)
@@ -164,8 +161,6 @@ func deCorrelatedJitter(min, max time.Duration, attempt int) time.Duration {
 // sleep := tmp / 2 + rand_between(0,tmp/2)
 // sleep := min(cap,rand_between(base,sleep*3))
 func deCorrelatedJitterMoreRound(min, max time.Duration, attempt int) time.Duration {
-	lock.Lock()
-	defer lock.Unlock()
 
 	base, capV := float64(min), float64(max)
 	// tmp := min(cap,base * 2 ** attempt)
