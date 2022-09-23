@@ -29,16 +29,16 @@ func New(logger *logrus.Logger) log.Logger {
 }
 
 func (l *Logger) Log(level log.Level, kvs ...interface{}) error {
+	if len(kvs) == 0 {
+		return nil
+	}
+
 	logrusLevel, ok := levelTransfer[level]
 	if !ok {
 		logrusLevel = logrus.InfoLevel
 	}
 
 	if logrusLevel > l.internal.Level {
-		return nil
-	}
-
-	if len(kvs) == 0 {
 		return nil
 	}
 

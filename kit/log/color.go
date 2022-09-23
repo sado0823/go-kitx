@@ -1,26 +1,40 @@
 package log
 
-func colorLevel(levelStr string) string {
-	return levelStr
-	//var colour color.Color
-	//switch levelStr {
-	//case LevelDebug.String():
-	//	colour = color.BgBlue
-	//case LevelInfo.String():
-	//	colour = color.BgGreen
-	//case LevelWarn.String():
-	//	colour = color.BgCyan
-	//case LevelError.String():
-	//	colour = color.BgRed
-	//case LevelFatal.String():
-	//	colour = color.BgMagenta
-	//default:
-	//	colour = color.NoColor
-	//}
-	//
-	//if colour == color.NoColor {
-	//	return levelStr
-	//}
-	//
-	//return color.WithColorPadding(levelStr, colour)
+import "fmt"
+
+const (
+	colorFgBlack = iota + 30
+	colorFgRed
+	colorFgGreen
+	colorFgYellow
+	colorFgBlue
+	colorFgMagenta
+	colorFgCyan
+	colorFgWhite
+)
+
+var level2Color = map[Level]int{
+	LevelDebug: colorFgWhite,
+	LevelInfo:  colorFgGreen,
+	LevelWarn:  colorFgYellow,
+	LevelError: colorFgRed,
+	LevelFatal: colorFgMagenta,
+}
+
+func colorLevel(level Level) string {
+	color, ok := level2Color[level]
+	if !ok {
+		color = colorFgBlack
+	}
+
+	return fmt.Sprintf("\x1b[%dm%s\x1b[0m ", color, level.String())
+}
+
+func withColor(level Level, origin interface{}) string {
+	color, ok := level2Color[level]
+	if !ok {
+		color = colorFgBlack
+	}
+
+	return fmt.Sprintf("\x1b[%dm%s\x1b[0m", color, origin)
 }

@@ -37,9 +37,9 @@ func (s *std) Log(level Level, kvs ...interface{}) error {
 	}
 
 	buf := s.pool.Get().(*bytes.Buffer)
-	buf.WriteString(colorLevel(level.String()))
+	buf.WriteString(colorLevel(level))
 	for i := 0; i < lenKvs; i += 2 {
-		_, _ = fmt.Fprintf(buf, " %s=%v", kvs[i], kvs[i+1])
+		_, _ = fmt.Fprintf(buf, " %s=%v", withColor(level, kvs[i]), kvs[i+1])
 	}
 	_ = s.log.Output(4, buf.String())
 
