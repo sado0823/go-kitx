@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/grpc v1.44.0
+	google.golang.org/grpc v1.46.2
 )
 
 require (
@@ -15,4 +15,7 @@ require (
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
+	google.golang.org/protobuf v1.28.0
+	gopkg.in/yaml.v3 v3.0.0
 )

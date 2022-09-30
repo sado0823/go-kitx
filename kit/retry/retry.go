@@ -95,46 +95,6 @@ func Func(ctx context.Context, subject string, fn func(ctx context.Context) erro
 	return err
 }
 
-// Loop RetryInfinite
-func Loop(ctx context.Context, subject string, fn func(ctx context.Context) error, opts ...Option) error {
-	var (
-		err error
-		o   = &options{
-			minWaitTime: defaultMinWaitTime,
-			maxWaitTime: defaultMaxWaitTime,
-		}
-	)
-
-	for _, op := range opts {
-		op(o)
-	}
-
-	var counter int
-	for {
-		err = fn(ctx)
-		if err == nil {
-			break
-		}
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
-		backoff := jitterBackoff(o.minWaitTime, o.maxWaitTime, counter)
-
-		t := time.NewTimer(backoff)
-		select {
-		case <-t.C:
-		case <-ctx.Done():
-			t.Stop()
-			return ctx.Err()
-		}
-
-		counter++
-	}
-
-	return nil
-}
-
 // https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
 func jitterBackoff(min, max time.Duration, attempt int) time.Duration {
 	res := deCorrelatedJitter(min, max, attempt)

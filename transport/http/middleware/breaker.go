@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"github.com/sado0823/go-kitx/transport/http/response"
 	"net/http"
 
-	"github.com/sado0823/go-kitx/http/response"
 	"github.com/sado0823/go-kitx/kit/breaker"
 )
 

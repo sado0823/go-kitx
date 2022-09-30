@@ -10,17 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Loop(t *testing.T) {
-	t.Run("ctx timeout", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
-		defer cancel()
-		err := Loop(ctx, "", func(ctx context.Context) error {
-			return errors.New("ctx timeout")
-		})
-		assert.ErrorIs(t, err, context.DeadlineExceeded)
-	})
-}
-
 func Test_Func(t *testing.T) {
 	t.Run("ctx timeout", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
