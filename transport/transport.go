@@ -27,7 +27,7 @@ type (
 		Keys() []string
 	}
 
-	Transpoter interface {
+	Transporter interface {
 		// Kind http, grpc
 		Kind() Kind
 		// Endpoint return server or client endpoint
@@ -65,20 +65,20 @@ type (
 	clientTransportKey struct{}
 )
 
-func NewServerContext(ctx context.Context, tr Transpoter) context.Context {
+func NewServerContext(ctx context.Context, tr Transporter) context.Context {
 	return context.WithValue(ctx, serverTransportKey{}, tr)
 }
 
-func FromServerContext(ctx context.Context) (tr Transpoter, ok bool) {
-	tr, ok = ctx.Value(serverTransportKey{}).(Transpoter)
+func FromServerContext(ctx context.Context) (tr Transporter, ok bool) {
+	tr, ok = ctx.Value(serverTransportKey{}).(Transporter)
 	return
 }
 
-func NewClientContext(ctx context.Context, tr Transpoter) context.Context {
+func NewClientContext(ctx context.Context, tr Transporter) context.Context {
 	return context.WithValue(ctx, clientTransportKey{}, tr)
 }
 
-func FromClientContext(ctx context.Context) (tr Transpoter, ok bool) {
-	tr, ok = ctx.Value(clientTransportKey{}).(Transpoter)
+func FromClientContext(ctx context.Context) (tr Transporter, ok bool) {
+	tr, ok = ctx.Value(clientTransportKey{}).(Transporter)
 	return
 }

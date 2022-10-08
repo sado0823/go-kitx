@@ -11,3 +11,8 @@ func (w *WithCodeResponseWriter) WriteHeader(statusCode int) {
 	w.Code = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
 }
+
+func (w *WithCodeResponseWriter) Reset(res http.ResponseWriter) {
+	w.ResponseWriter = res
+	w.Code = http.StatusOK
+}

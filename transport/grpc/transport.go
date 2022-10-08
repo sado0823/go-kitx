@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var _ transport.Transpoter = (*Transport)(nil)
+var _ transport.Transporter = (*Transport)(nil)
 
 type Transport struct {
 	endpoint    string
