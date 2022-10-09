@@ -3,7 +3,7 @@ module github.com/sado0823/go-kitx/plugin/registry/etcd
 go 1.17
 
 require (
-	github.com/sado0823/go-kitx v0.0.0-00010101000000-000000000000
+	github.com/sado0823/go-kitx v0.0.2
 	go.etcd.io/etcd/client/v3 v3.5.4
 )
 
@@ -22,7 +22,7 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
 	google.golang.org/grpc v1.46.2 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 )
 
 replace github.com/sado0823/go-kitx => ../../../

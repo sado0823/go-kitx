@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/sado0823/go-kitx/kit/log"
@@ -34,6 +35,45 @@ func (r *resolver) Close() {
 	}
 }
 
+// firstCheck using when app init, check have right endpoint or not
+func (r *resolver) firstCheck(timeoutCtx context.Context) error {
+	select {
+	case <-timeoutCtx.Done():
+		return fmt.Errorf("discovery create watcher overtime, err:%+v", timeoutCtx.Err())
+	default:
+		// first time
+		svcs, err := r.watcher.Next()
+		if err != nil {
+			return err
+		}
+
+		if len(svcs) == 0 {
+			return errors.New("discovery found no services at first time")
+		}
+
+		var endpoints []string
+		for _, svc := range svcs {
+			parseEndpoint, err := endpoint.ParseEndpoint(svc.Endpoints, endpoint.Scheme("grpc", !r.insecure))
+			if err != nil {
+				log.Errorf("discovery resolver update err:%+v", err)
+				continue
+			}
+
+			if parseEndpoint == "" {
+				continue
+			}
+
+			endpoints = append(endpoints, parseEndpoint)
+		}
+
+		if len(endpoints) == 0 {
+			return errors.New("discovery found no valid endpoint at first time")
+		}
+
+		return r.update(svcs)
+	}
+}
+
 func (r *resolver) watch() {
 	for {
 		select {
@@ -50,11 +90,13 @@ func (r *resolver) watch() {
 			time.Sleep(time.Second)
 			continue
 		}
-		r.update(svcs)
+		if err = r.update(svcs); err != nil {
+			log.Errorf("discovery resolver update err:%+v, svcs:%#v", err, svcs)
+		}
 	}
 }
 
-func (r *resolver) update(svcs []*registry.Service) {
+func (r *resolver) update(svcs []*registry.Service) error {
 	addrs := make([]googleResolver.Address, 0)
 	endpoints := make(map[string]struct{})
 	for _, svc := range svcs {
@@ -81,16 +123,12 @@ func (r *resolver) update(svcs []*registry.Service) {
 	}
 	if len(addrs) == 0 {
 		log.Warnf("discovery resolver update found no addr, svcs:%#v", svcs)
-		return
+		return nil
 	}
 
-	err := r.conn.UpdateState(googleResolver.State{
+	return r.conn.UpdateState(googleResolver.State{
 		Addresses: addrs,
 	})
-
-	if err != nil {
-		log.Errorf("discovery resolver update err:%+v, svcs:%#v", err, svcs)
-	}
 }
 
 func parseAttributes(md map[string]string) *attributes.Attributes {

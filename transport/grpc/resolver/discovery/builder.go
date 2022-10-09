@@ -2,7 +2,7 @@ package discovery
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -60,10 +60,17 @@ func (b *builder) Build(target googleResolver.Target, cc googleResolver.ClientCo
 
 	log.Infof("discovery build:%s", target.URL.Path)
 
-	done := make(chan struct{}, 1)
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	var (
+		done                                 = make(chan struct{}, 1)
+		ctx, cancelFunc                      = context.WithCancel(context.Background())
+		ctxWithTimeout, ctxWithTimeoutCancel = context.WithTimeout(context.Background(), b.timeout)
+		appName                              = strings.TrimPrefix(target.URL.Path, "/")
+	)
+
+	defer ctxWithTimeoutCancel()
+
 	go func() {
-		watcher, err := b.discovery.Watch(ctx, strings.TrimPrefix(target.URL.Path, "/"))
+		watcher, err := b.discovery.Watch(ctx, appName)
 		watchRes.err = err
 		watchRes.w = watcher
 		close(done)
@@ -73,8 +80,8 @@ func (b *builder) Build(target googleResolver.Target, cc googleResolver.ClientCo
 	select {
 	case <-done:
 		err = watchRes.err
-	case <-time.After(b.timeout):
-		err = errors.New("discovery create watcher overtime")
+	case <-ctxWithTimeout.Done():
+		err = fmt.Errorf("discovery create watcher overtime, err: %+v", ctxWithTimeout.Err())
 	}
 	if err != nil {
 		cancelFunc()
@@ -88,7 +95,14 @@ func (b *builder) Build(target googleResolver.Target, cc googleResolver.ClientCo
 		conn:       cc,
 		insecure:   b.insecure,
 	}
-	r.watch()
+
+	// when init app, make sure have right endpoint
+	if err = r.firstCheck(ctxWithTimeout); err != nil {
+		cancelFunc()
+		return nil, fmt.Errorf("first check err: %+v, app name: %s", err, appName)
+	}
+
+	go r.watch()
 
 	return r, nil
 }
