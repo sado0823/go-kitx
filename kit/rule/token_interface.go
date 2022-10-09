@@ -159,7 +159,7 @@ func (t *tokenFunc) SymbolFn() SymbolFn {
 			return wrap2Float(fn(param))
 		}
 
-		logger.Printf("func right %v, %T \n", right, right)
+		logger.Debugf("func right %v, %T \n", right, right)
 
 		params := make([]interface{}, 0)
 

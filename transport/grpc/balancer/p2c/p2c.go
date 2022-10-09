@@ -2,15 +2,14 @@ package p2c
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/sado0823/go-kitx/kit/log"
 	"github.com/sado0823/go-kitx/pkg/atomicx"
 
 	"google.golang.org/grpc/balancer"
@@ -34,8 +33,8 @@ const (
 )
 
 var (
-	logger   = log.New(os.Stdout, fmt.Sprintf("[DEBUG][pkg=p2c][%s] ", time.Now().Format(time.StampMilli)), log.Lshortfile)
 	initTime = time.Now().AddDate(-1, -1, -1)
+	logger   = log.NewHelper(log.WithFields(log.GetGlobal(), "pkg", "p2c"))
 )
 
 func newBuilder() balancer.Builder {
@@ -50,7 +49,7 @@ type p2cPickBuilder struct {
 }
 
 func (p *p2cPickBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
-	logger.Printf("p2cPickBuilder: Build called with info: %v", info)
+	logger.Debugf("p2cPickBuilder: Build called with info: %+v", info)
 	if len(info.ReadySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
@@ -184,7 +183,7 @@ func (p *p2cPicker) logStats() {
 			conn.addr.Addr, conn.load(), atomic.SwapInt64(&conn.requests, 0)))
 	}
 
-	logger.Printf("%s", strings.Join(stats, "; "))
+	logger.Debugf("%s", strings.Join(stats, "; "))
 }
 
 func (p *p2cPicker) choose(c1, c2 *p2cSubConn) *p2cSubConn {

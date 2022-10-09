@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sado0823/go-kitx/kit/log"
 	"github.com/sado0823/go-kitx/kit/registry"
 
 	googleResolver "google.golang.org/grpc/resolver"
@@ -37,6 +38,7 @@ func WithInsecure(insecure bool) Option {
 	}
 }
 
+//	NewBuilder example discovery://<authority>/name
 func NewBuilder(dis registry.Discovery, opts ...Option) googleResolver.Builder {
 	b := &builder{
 		discovery: dis,
@@ -55,6 +57,8 @@ func (b *builder) Build(target googleResolver.Target, cc googleResolver.ClientCo
 		err error
 		w   registry.Watcher
 	}{}
+
+	log.Infof("discovery build:%s", target.URL.Path)
 
 	done := make(chan struct{}, 1)
 	ctx, cancelFunc := context.WithCancel(context.Background())

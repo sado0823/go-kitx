@@ -3,11 +3,11 @@ package ratelimit
 import (
 	"errors"
 	"fmt"
-	"github.com/sado0823/go-kitx/kit/log"
 	"math"
 	"sync/atomic"
 	"time"
 
+	"github.com/sado0823/go-kitx/kit/log"
 	"github.com/sado0823/go-kitx/pkg/atomicx"
 	rollingwindow "github.com/sado0823/go-kitx/pkg/rollingwindow/v2"
 	"github.com/sado0823/go-kitx/pkg/syncx"

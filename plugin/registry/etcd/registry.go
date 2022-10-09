@@ -8,6 +8,7 @@ import (
 
 	"github.com/sado0823/go-kitx/kit/log"
 	"github.com/sado0823/go-kitx/kit/registry"
+
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -61,7 +62,7 @@ type Registry struct {
 func New(client *clientv3.Client, opts ...Option) *Registry {
 	op := &options{
 		ctx:       context.Background(),
-		namespace: "/microservices",
+		namespace: "/kitx-services",
 		ttl:       time.Second * 15,
 		maxRetry:  5,
 	}

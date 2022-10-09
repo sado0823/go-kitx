@@ -5,21 +5,14 @@ import (
 	"fmt"
 	"go/scanner"
 	"go/token"
-	"io"
-	"log"
-	"os"
 	"strings"
-	"time"
+
+	"github.com/sado0823/go-kitx/kit/log"
 )
 
 var (
-	logger = log.New(os.Stdout, fmt.Sprintf("[DEBUG][pkg=rule][%s] ", time.Now().Format(time.StampMilli)), log.Lshortfile)
+	logger = log.NewHelper(log.WithFields(log.GetGlobal(), "pkg", "rule"))
 )
-
-func init() {
-	logger.SetFlags(0)
-	logger.SetOutput(io.Discard)
-}
 
 type (
 	Parser struct {
@@ -122,7 +115,7 @@ func (p *Parser) read() ([]Token, error) {
 	)
 	for {
 		pos, tok, lit := p.sc.Scan()
-		logger.Printf("pos_o=%d  pos=%s\t token=%#v\t token_str=%q\t lit=%q\n", pos, p.fSet.Position(pos), tok, tok.String(), lit)
+		logger.Debugf("pos_o=%d  pos=%s\t token=%#v\t token_str=%q\t lit=%q\n", pos, p.fSet.Position(pos), tok, tok.String(), lit)
 		if tok == token.EOF {
 			if !beforeToken.CanEOF() {
 				return nil, fmt.Errorf("%s can NOT be last", beforeToken.String())

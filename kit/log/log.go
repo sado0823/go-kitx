@@ -29,15 +29,15 @@ func (l *logger) Log(level Level, kvs ...interface{}) error {
 }
 
 // WithFields add new fields to the logger
-func WithFields(l Logger, fields ...interface{}) Logger {
+func WithFields(l Logger, kvs ...interface{}) Logger {
 	from, ok := l.(*logger)
 	if !ok {
-		return &logger{ctx: context.Background(), internal: l, prefix: fields, hasValuer: containValuer(fields)}
+		return &logger{ctx: context.Background(), internal: l, prefix: kvs, hasValuer: containValuer(kvs)}
 	}
 
-	fullKvs := make([]interface{}, 0, len(fields)+len(from.prefix))
+	fullKvs := make([]interface{}, 0, len(kvs)+len(from.prefix))
 	fullKvs = append(fullKvs, from.prefix...)
-	fullKvs = append(fullKvs, fields...)
+	fullKvs = append(fullKvs, kvs...)
 	return &logger{ctx: from.ctx, internal: from.internal, prefix: fullKvs, hasValuer: containValuer(fullKvs)}
 }
 

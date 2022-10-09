@@ -27,9 +27,9 @@ func Test_New(t *testing.T) {
 		Hobby: nil,
 	}
 	parser, err := New(context.Background(), "Name", WithCustomFn("test", func(evalParam interface{}, arguments ...interface{}) (interface{}, error) {
-		logger.Println("i am test func")
-		logger.Println("evalParam: ", evalParam)
-		logger.Println(arguments...)
+		t.Log("i am test func")
+		t.Log("evalParam: ", evalParam)
+		t.Log(arguments...)
 		return true, nil
 	}))
 	if err != nil {
@@ -39,7 +39,7 @@ func Test_New(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	logger.Printf("res=%v\t type=%T\t err=%+v \n", res, res, err)
+	t.Logf("res=%v\t type=%T\t err=%+v \n", res, res, err)
 }
 
 func Test_Do(t *testing.T) {
@@ -56,5 +56,5 @@ func Test_Do(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	logger.Printf("res=%v\t type=%T\t err=%+v \n", res, res, err)
+	t.Logf("res=%v\t type=%T\t err=%+v \n", res, res, err)
 }

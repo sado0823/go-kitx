@@ -4,16 +4,17 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"google.golang.org/grpc/credentials"
 	"time"
 
 	"github.com/sado0823/go-kitx/kit/middleware"
 	"github.com/sado0823/go-kitx/kit/registry"
 	"github.com/sado0823/go-kitx/transport"
 	"github.com/sado0823/go-kitx/transport/grpc/balancer/p2c"
+	_ "github.com/sado0823/go-kitx/transport/grpc/resolver/direct"
 	"github.com/sado0823/go-kitx/transport/grpc/resolver/discovery"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	grpcinsecure "google.golang.org/grpc/credentials/insecure"
 	grpcmd "google.golang.org/grpc/metadata"
 )
@@ -91,6 +92,7 @@ func dial(ctx context.Context, insecure bool, opts ...ClientOption) (*grpc.Clien
 	for _, op := range opts {
 		op(opt)
 	}
+
 	ints := []grpc.UnaryClientInterceptor{
 		unaryClientInterceptor(opt.middleware, opt.timeout),
 	}

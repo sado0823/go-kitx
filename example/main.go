@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/sado0823/go-kitx"
 	"github.com/sado0823/go-kitx/kit/log"
 	logrusV "github.com/sado0823/go-kitx/plugin/logger/logrus"
 	zapV "github.com/sado0823/go-kitx/plugin/logger/zap"
@@ -12,6 +13,7 @@ import (
 )
 
 func init() {
+	kitx.New()
 	v := logrus.New()
 	v.Level = logrus.DebugLevel
 	logger := logrusV.New(v)

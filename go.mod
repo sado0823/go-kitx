@@ -11,6 +11,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/goccy/go-graphviz v0.0.9
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9

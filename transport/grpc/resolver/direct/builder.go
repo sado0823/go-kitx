@@ -3,12 +3,18 @@ package direct
 import (
 	"strings"
 
+	"github.com/sado0823/go-kitx/kit/log"
+
 	googleResolver "google.golang.org/grpc/resolver"
 )
 
 const (
 	Scheme = "direct"
 )
+
+func init() {
+	googleResolver.Register(NewBuilder())
+}
 
 type builder struct{}
 
@@ -19,6 +25,7 @@ func NewBuilder() googleResolver.Builder {
 
 func (b *builder) Build(target googleResolver.Target, cc googleResolver.ClientConn, opts googleResolver.BuildOptions) (googleResolver.Resolver, error) {
 	addrs := make([]googleResolver.Address, 0)
+	log.Infof("direct build:%s", target.URL.Path)
 	paths := strings.Split(strings.TrimPrefix(target.URL.Path, "/"), ",")
 
 	for _, path := range paths {
