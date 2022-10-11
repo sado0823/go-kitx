@@ -22,6 +22,7 @@ type GreeterClient interface {
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	// Sends a greeting
 	SayHelloStream(ctx context.Context, opts ...grpc.CallOption) (Greeter_SayHelloStreamClient, error)
+	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*HelloReply, error)
 }
 
 type greeterClient struct {
@@ -72,6 +73,15 @@ func (x *greeterSayHelloStreamClient) Recv() (*HelloReply, error) {
 	return m, nil
 }
 
+func (c *greeterClient) AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*HelloReply, error) {
+	out := new(HelloReply)
+	err := c.cc.Invoke(ctx, "/pbhelloworld.Greeter/AddUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GreeterServer is the server API for Greeter service.
 // All implementations must embed UnimplementedGreeterServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type GreeterServer interface {
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 	// Sends a greeting
 	SayHelloStream(Greeter_SayHelloStreamServer) error
+	AddUser(context.Context, *AddUserRequest) (*HelloReply, error)
 	mustEmbedUnimplementedGreeterServer()
 }
 
@@ -92,6 +103,9 @@ func (UnimplementedGreeterServer) SayHello(context.Context, *HelloRequest) (*Hel
 }
 func (UnimplementedGreeterServer) SayHelloStream(Greeter_SayHelloStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method SayHelloStream not implemented")
+}
+func (UnimplementedGreeterServer) AddUser(context.Context, *AddUserRequest) (*HelloReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 
@@ -150,6 +164,24 @@ func (x *greeterSayHelloStreamServer) Recv() (*HelloRequest, error) {
 	return m, nil
 }
 
+func _Greeter_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).AddUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pbhelloworld.Greeter/AddUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).AddUser(ctx, req.(*AddUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Greeter_ServiceDesc is the grpc.ServiceDesc for Greeter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +192,10 @@ var Greeter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SayHello",
 			Handler:    _Greeter_SayHello_Handler,
+		},
+		{
+			MethodName: "AddUser",
+			Handler:    _Greeter_AddUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

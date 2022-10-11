@@ -1,4 +1,4 @@
-package errors
+package errorx
 
 import (
 	"errors"
@@ -12,9 +12,7 @@ const (
 	// UnknownCode is unknown code for error info.
 	UnknownCode = 500
 	// UnknownReason is unknown reason for error info.
-	UnknownReason = ""
-	// SupportPackageIsVersion1 this constant should not be referenced by any other code.
-	SupportPackageIsVersion1 = true
+	UnknownReason = "unknown"
 )
 
 // Error is a status error.
@@ -84,7 +82,7 @@ func Errorf(code int, reason, format string, a ...interface{}) error {
 }
 
 // Code returns the http code for an error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func Code(err error) int {
 	if err == nil {
 		return 200 //nolint:gomnd
@@ -93,7 +91,7 @@ func Code(err error) int {
 }
 
 // Reason returns the reason for a particular error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func Reason(err error) string {
 	if err == nil {
 		return UnknownReason
@@ -122,7 +120,7 @@ func Clone(err *Error) *Error {
 }
 
 // FromError try to convert an error to *Error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func FromError(err error) *Error {
 	if err == nil {
 		return nil

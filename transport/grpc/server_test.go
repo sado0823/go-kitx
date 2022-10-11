@@ -2,11 +2,13 @@ package grpc
 
 import (
 	"context"
-	"github.com/sado0823/go-kitx/internal/test/pbhelloworld"
-	"github.com/sado0823/go-kitx/kit/middleware"
-	"github.com/sado0823/go-kitx/transport"
-	"google.golang.org/grpc"
 	"testing"
+
+	"github.com/sado0823/go-kitx/internal/test/pbhelloworld"
+	"github.com/sado0823/go-kitx/transport"
+	"github.com/sado0823/go-kitx/transport/pbchain"
+
+	"google.golang.org/grpc"
 )
 
 type testHelloServer struct {
@@ -59,7 +61,7 @@ func testClient(t *testing.T, srv *Server) *grpc.ClientConn {
 			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 				return invoker(ctx, method, req, reply, cc, opts...)
 			}),
-		WithClientMiddleware(func(handler middleware.Handler) middleware.Handler {
+		WithClientPBChain(func(handler pbchain.Handler) pbchain.Handler {
 			return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 				if tr, ok := transport.FromClientContext(ctx); ok {
 					header := tr.RequestHeader()

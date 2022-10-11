@@ -2,20 +2,17 @@ module github.com/sado0823/go-kitx/example
 
 go 1.17
 
-require github.com/sirupsen/logrus v1.8.1
-
 require (
 	github.com/sado0823/go-kitx v0.0.2
-	github.com/sado0823/go-kitx/plugin/logger/logrus v0.0.1
-	github.com/sado0823/go-kitx/plugin/logger/zap v0.0.1
 	github.com/sado0823/go-kitx/plugin/registry/etcd v0.0.0-20221009073440-50faf22007b7
 	go.etcd.io/etcd/client/v3 v3.5.5
-	go.uber.org/zap v1.23.0
 )
 
 require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/envoyproxy/protoc-gen-validate v0.1.0 // indirect
+	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -24,6 +21,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 // indirect

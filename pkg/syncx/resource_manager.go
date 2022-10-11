@@ -4,9 +4,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/sado0823/go-kitx/pkg/errorx"
-
 	"golang.org/x/sync/singleflight"
+
+	"github.com/sado0823/go-kitx/errorx"
 )
 
 type ResourceManager struct {

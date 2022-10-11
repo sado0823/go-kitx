@@ -1,4 +1,4 @@
-package errors
+package errorx
 
 import (
 	"errors"
@@ -120,7 +120,7 @@ func TestOther(t *testing.T) {
 		t.Errorf("Code(nil) = %v, want %v", Code(nil), 200)
 	}
 	if !reflect.DeepEqual(Code(errors.New("test")), UnknownCode) {
-		t.Errorf(`Code(errors.New("test")) = %v, want %v`, Code(nil), 200)
+		t.Errorf(`Code(errorx.New("test")) = %v, want %v`, Code(nil), 200)
 	}
 	if !reflect.DeepEqual(Code(err), 10001) {
 		t.Errorf(`Code(err) = %v, want %v`, Code(err), 10001)
@@ -130,7 +130,7 @@ func TestOther(t *testing.T) {
 		t.Errorf(`Reason(nil) = %v, want %v`, Reason(nil), UnknownReason)
 	}
 	if !reflect.DeepEqual(Reason(errors.New("test")), UnknownReason) {
-		t.Errorf(`Reason(errors.New("test")) = %v, want %v`, Reason(nil), UnknownReason)
+		t.Errorf(`Reason(errorx.New("test")) = %v, want %v`, Reason(nil), UnknownReason)
 	}
 	if !reflect.DeepEqual(Reason(err), "test code 10001") {
 		t.Errorf(`Reason(err) = %v, want %v`, Reason(err), "test code 10001")

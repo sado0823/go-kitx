@@ -1,11 +1,11 @@
-package middleware
+package pbchain
 
 import "context"
 
 type (
 	Handler func(ctx context.Context, req interface{}) (resp interface{}, err error)
 
-	// Middleware is a transport http/grpc middleware
+	// Middleware is a transport http/grpc pbchain
 	Middleware func(next Handler) Handler
 )
 

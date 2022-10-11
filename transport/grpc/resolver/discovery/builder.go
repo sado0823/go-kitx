@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sado0823/go-kitx/kit/log"
 	"github.com/sado0823/go-kitx/kit/registry"
 
 	googleResolver "google.golang.org/grpc/resolver"
@@ -58,13 +57,12 @@ func (b *builder) Build(target googleResolver.Target, cc googleResolver.ClientCo
 		w   registry.Watcher
 	}{}
 
-	log.Infof("discovery build:%s", target.URL.Path)
-
 	var (
 		done                                 = make(chan struct{}, 1)
 		ctx, cancelFunc                      = context.WithCancel(context.Background())
 		ctxWithTimeout, ctxWithTimeoutCancel = context.WithTimeout(context.Background(), b.timeout)
-		appName                              = strings.TrimPrefix(target.URL.Path, "/")
+		// target.URL.Path like /demo.app
+		appName = strings.TrimPrefix(target.URL.Path, "/")
 	)
 
 	defer ctxWithTimeoutCancel()

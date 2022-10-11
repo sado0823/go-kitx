@@ -1,5 +1,5 @@
 // nolint:gomnd
-package errors
+package errorx
 
 // BadRequest new BadRequest error that is mapped to a 400 response.
 func BadRequest(reason, message string) *Error {
@@ -7,7 +7,7 @@ func BadRequest(reason, message string) *Error {
 }
 
 // IsBadRequest determines if err is an error which indicates a BadRequest error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsBadRequest(err error) bool {
 	return Code(err) == 400
 }
@@ -18,7 +18,7 @@ func Unauthorized(reason, message string) *Error {
 }
 
 // IsUnauthorized determines if err is an error which indicates an Unauthorized error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsUnauthorized(err error) bool {
 	return Code(err) == 401
 }
@@ -29,7 +29,7 @@ func Forbidden(reason, message string) *Error {
 }
 
 // IsForbidden determines if err is an error which indicates a Forbidden error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsForbidden(err error) bool {
 	return Code(err) == 403
 }
@@ -40,7 +40,7 @@ func NotFound(reason, message string) *Error {
 }
 
 // IsNotFound determines if err is an error which indicates an NotFound error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsNotFound(err error) bool {
 	return Code(err) == 404
 }
@@ -51,7 +51,7 @@ func Conflict(reason, message string) *Error {
 }
 
 // IsConflict determines if err is an error which indicates a Conflict error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsConflict(err error) bool {
 	return Code(err) == 409
 }
@@ -62,7 +62,7 @@ func InternalServer(reason, message string) *Error {
 }
 
 // IsInternalServer determines if err is an error which indicates an Internal error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsInternalServer(err error) bool {
 	return Code(err) == 500
 }
@@ -73,7 +73,7 @@ func ServiceUnavailable(reason, message string) *Error {
 }
 
 // IsServiceUnavailable determines if err is an error which indicates an Unavailable error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsServiceUnavailable(err error) bool {
 	return Code(err) == 503
 }
@@ -84,7 +84,7 @@ func GatewayTimeout(reason, message string) *Error {
 }
 
 // IsGatewayTimeout determines if err is an error which indicates a GatewayTimeout error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsGatewayTimeout(err error) bool {
 	return Code(err) == 504
 }
@@ -95,7 +95,7 @@ func ClientClosed(reason, message string) *Error {
 }
 
 // IsClientClosed determines if err is an error which indicates a IsClientClosed error.
-// It supports wrapped errors.
+// It supports wrapped errorx.
 func IsClientClosed(err error) bool {
 	return Code(err) == 499
 }

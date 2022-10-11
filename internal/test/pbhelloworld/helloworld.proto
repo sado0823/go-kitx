@@ -3,6 +3,7 @@ syntax = "proto3";
 package pbhelloworld;
 
 import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/sado0823/go-kitx/internal/test/pbhelloworld";
 
@@ -16,6 +17,13 @@ service Greeter {
     }
     // Sends a greeting
     rpc SayHelloStream (stream HelloRequest) returns (stream HelloReply);
+
+    rpc AddUser (AddUserRequest) returns (HelloReply) {
+        option(google.api.http) = {
+            post: "/add/user",
+            body: "*",
+        };
+    }
 }
 
 // The request message containing the user's name.
@@ -26,4 +34,9 @@ message HelloRequest {
 // The response message containing the greetings
 message HelloReply {
     string message = 1;
+}
+
+message AddUserRequest {
+    string name = 1 [(validate.rules).string.min_len = 1];
+    int64 age = 2 [(validate.rules).int64.gt = 2];
 }

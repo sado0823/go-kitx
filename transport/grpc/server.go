@@ -9,9 +9,9 @@ import (
 
 	"github.com/sado0823/go-kitx/internal/host"
 	"github.com/sado0823/go-kitx/kit/log"
-	"github.com/sado0823/go-kitx/kit/middleware"
 	"github.com/sado0823/go-kitx/transport"
 	"github.com/sado0823/go-kitx/transport/internal/endpoint"
+	"github.com/sado0823/go-kitx/transport/pbchain"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -39,7 +39,7 @@ type (
 		endpoint  *url.URL
 		timeout   time.Duration
 
-		middleware middleware.Matcher
+		pbchain    pbchain.Matcher
 		unaryInts  []grpc.UnaryServerInterceptor
 		streamInts []grpc.StreamServerInterceptor
 		grpcOpts   []grpc.ServerOption
@@ -47,10 +47,10 @@ type (
 	}
 )
 
-// WithServerMiddleware with server middleware.
-func WithServerMiddleware(m ...middleware.Middleware) ServerOption {
+// WithServerPBChain with server pbchain.
+func WithServerPBChain(m ...pbchain.Middleware) ServerOption {
 	return func(s *Server) {
-		s.middleware.Use(m...)
+		s.pbchain.Use(m...)
 	}
 }
 
@@ -98,12 +98,12 @@ func WithServerOption(opts ...grpc.ServerOption) ServerOption {
 
 func NewServer(opts ...ServerOption) *Server {
 	srv := &Server{
-		ctx:        context.Background(),
-		network:    "tcp",
-		address:    ":0",
-		timeout:    time.Second * 3,
-		health:     health.NewServer(),
-		middleware: middleware.NewMatcher(),
+		ctx:     context.Background(),
+		network: "tcp",
+		address: ":0",
+		timeout: time.Second * 3,
+		health:  health.NewServer(),
+		pbchain: pbchain.NewMatcher(),
 	}
 	for _, opt := range opts {
 		opt(srv)
@@ -156,13 +156,13 @@ func (s *Server) Stop(ctx context.Context) error {
 	return nil
 }
 
-// Use uses a service middleware with selector.
+// Use uses a service pbchain with selector.
 // selector:
 //   - '/*'
 //   - '/helloworld.v1.Greeter/*'
 //   - '/helloworld.v1.Greeter/SayHello'
-func (s *Server) Use(selector string, m ...middleware.Middleware) {
-	s.middleware.Add(selector, m...)
+func (s *Server) Use(selector string, m ...pbchain.Middleware) {
+	s.pbchain.Add(selector, m...)
 }
 
 // Endpoint return a real address to registry endpoint.

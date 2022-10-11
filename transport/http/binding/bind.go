@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/sado0823/go-kitx/errors"
+	"github.com/sado0823/go-kitx/errorx"
 	"github.com/sado0823/go-kitx/pkg/encoding"
 	"github.com/sado0823/go-kitx/pkg/encoding/form"
 )
@@ -12,7 +12,7 @@ import (
 // BindQuery bind vars parameters to target.
 func BindQuery(vars url.Values, target interface{}) error {
 	if err := encoding.GetCodec(form.Name).Unmarshal([]byte(vars.Encode()), target); err != nil {
-		return errors.BadRequest("CODEC", err.Error())
+		return errorx.BadRequest("CODEC", err.Error())
 	}
 	return nil
 }
@@ -23,7 +23,7 @@ func BindForm(req *http.Request, target interface{}) error {
 		return err
 	}
 	if err := encoding.GetCodec(form.Name).Unmarshal([]byte(req.Form.Encode()), target); err != nil {
-		return errors.BadRequest("CODEC", err.Error())
+		return errorx.BadRequest("CODEC", err.Error())
 	}
 	return nil
 }

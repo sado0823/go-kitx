@@ -4,8 +4,8 @@ import (
 	"context"
 
 	contextx "github.com/sado0823/go-kitx/internal/context"
-	"github.com/sado0823/go-kitx/kit/middleware"
 	"github.com/sado0823/go-kitx/transport"
+	"github.com/sado0823/go-kitx/transport/pbchain"
 
 	"google.golang.org/grpc"
 	grpcmd "google.golang.org/grpc/metadata"
@@ -38,8 +38,8 @@ func (s *Server) defaultUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		if next := s.middleware.Match(tr.Operation()); len(next) > 0 {
-			handlerFn = middleware.Chain(next...)(handlerFn)
+		if next := s.pbchain.Match(tr.Operation()); len(next) > 0 {
+			handlerFn = pbchain.Chain(next...)(handlerFn)
 		}
 
 		reply, err := handlerFn(mergeCtx, req)

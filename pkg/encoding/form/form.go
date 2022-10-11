@@ -1,27 +1,80 @@
 package form
 
 import (
-	"errors"
+	"net/url"
+	"reflect"
 
 	"github.com/sado0823/go-kitx/pkg/encoding"
+
+	"github.com/go-playground/form/v4"
+	"google.golang.org/protobuf/proto"
 )
 
-const Name = "form"
+const (
+	Name    = "form"
+	nullStr = "null"
+)
+
+var (
+	encoder = form.NewEncoder()
+	decoder = form.NewDecoder()
+)
 
 func init() {
-	encoding.RegisterCodec(codec{})
+	decoder.SetTagName("json")
+	encoder.SetTagName("json")
+	encoding.RegisterCodec(codec{encoder: encoder, decoder: decoder})
 }
 
-type codec struct{}
+type codec struct {
+	encoder *form.Encoder
+	decoder *form.Decoder
+}
 
 func (c codec) Marshal(v interface{}) ([]byte, error) {
-	return nil, errors.New("to be finished form encoding")
+	var vs url.Values
+	var err error
+	if m, ok := v.(proto.Message); ok {
+		vs, err = EncodeValues(m)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		vs, err = c.encoder.Encode(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for k, v := range vs {
+		if len(v) == 0 {
+			delete(vs, k)
+		}
+	}
+	return []byte(vs.Encode()), nil
 }
 
 func (c codec) Unmarshal(data []byte, v interface{}) error {
-	return errors.New("to be finished form encoding")
+	vs, err := url.ParseQuery(string(data))
+	if err != nil {
+		return err
+	}
+
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			rv.Set(reflect.New(rv.Type().Elem()))
+		}
+		rv = rv.Elem()
+	}
+	if m, ok := v.(proto.Message); ok {
+		return DecodeValues(m, vs)
+	} else if m, ok := reflect.Indirect(reflect.ValueOf(v)).Interface().(proto.Message); ok {
+		return DecodeValues(m, vs)
+	}
+
+	return c.decoder.Decode(v, vs)
 }
 
-func (c codec) Name() string {
+func (codec) Name() string {
 	return Name
 }

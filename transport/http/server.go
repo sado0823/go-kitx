@@ -11,9 +11,9 @@ import (
 
 	"github.com/sado0823/go-kitx/internal/host"
 	"github.com/sado0823/go-kitx/kit/log"
-	"github.com/sado0823/go-kitx/kit/middleware"
 	"github.com/sado0823/go-kitx/transport"
 	"github.com/sado0823/go-kitx/transport/internal/endpoint"
+	"github.com/sado0823/go-kitx/transport/pbchain"
 
 	"github.com/gorilla/mux"
 )
@@ -39,12 +39,12 @@ type (
 		address     string
 		timeout     time.Duration
 
-		filters    []FilterFunc
-		middleware middleware.Matcher
+		filters []FilterFunc
+		pbchain pbchain.Matcher
 
-		decoder      DecodeRequestFn
-		encoder      EncodeResponseFn
-		errorEncoder EncodeErrorFn
+		decoder      DecodeRequestFunc
+		encoder      EncodeResponseFunc
+		errorEncoder EncodeErrorFunc
 
 		err error
 	}
@@ -68,9 +68,9 @@ func WithServerTimeout(timeout time.Duration) ServerOption {
 	}
 }
 
-func WithServerMiddleware(m ...middleware.Middleware) ServerOption {
+func WithServerPBChain(m ...pbchain.Middleware) ServerOption {
 	return func(o *Server) {
-		o.middleware.Use(m...)
+		o.pbchain.Use(m...)
 	}
 }
 
@@ -80,19 +80,19 @@ func WithServerFilter(filters ...FilterFunc) ServerOption {
 	}
 }
 
-func WithServerRequestDecoder(dec DecodeRequestFn) ServerOption {
+func WithServerRequestDecoder(dec DecodeRequestFunc) ServerOption {
 	return func(o *Server) {
 		o.decoder = dec
 	}
 }
 
-func WithServerResponseEncoder(en EncodeResponseFn) ServerOption {
+func WithServerResponseEncoder(en EncodeResponseFunc) ServerOption {
 	return func(o *Server) {
 		o.encoder = en
 	}
 }
 
-func WithServerErrorEncoder(en EncodeErrorFn) ServerOption {
+func WithServerErrorEncoder(en EncodeErrorFunc) ServerOption {
 	return func(o *Server) {
 		o.errorEncoder = en
 	}
@@ -125,7 +125,7 @@ func NewServer(opts ...ServerOption) *Server {
 		network:      "tcp",
 		address:      ":0",
 		timeout:      time.Second * 2,
-		middleware:   middleware.NewMatcher(),
+		pbchain:      pbchain.NewMatcher(),
 		decoder:      RequestDecoder,
 		encoder:      ResponseEncoder,
 		errorEncoder: ErrorEncoder,
@@ -245,13 +245,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	s.Handler.ServeHTTP(w, req)
 }
 
-// Use uses a service middleware with selector.
+// Use uses a service pbchain with selector.
 // selector:
 //   - '/*'
 //   - '/foo/*'
 //   - '/foo/bar'
-func (s *Server) Use(selector string, m ...middleware.Middleware) {
-	s.middleware.Add(selector, m...)
+func (s *Server) Use(selector string, m ...pbchain.Middleware) {
+	s.pbchain.Add(selector, m...)
 }
 
 // WalkRoute walks the router and all its sub-routers, calling walkFn for each route in the tree.

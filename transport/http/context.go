@@ -9,10 +9,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/sado0823/go-kitx/kit/middleware"
 	"github.com/sado0823/go-kitx/transport"
 	"github.com/sado0823/go-kitx/transport/http/binding"
 	"github.com/sado0823/go-kitx/transport/http/response"
+	"github.com/sado0823/go-kitx/transport/pbchain"
 
 	"github.com/gorilla/mux"
 )
@@ -31,7 +31,7 @@ type (
 		Header() http.Header
 		Request() *http.Request
 		Response() http.ResponseWriter
-		Middleware(middleware.Handler) middleware.Handler
+		Middleware(pbchain.Handler) pbchain.Handler
 		Bind(interface{}) error
 		BindVars(interface{}) error
 		BindQuery(interface{}) error
@@ -77,24 +77,37 @@ func (c *contextx) Form() url.Values {
 func (c *contextx) Query() url.Values {
 	return c.req.URL.Query()
 }
-func (c *contextx) Request() *http.Request { return c.req }
 
-func (c *contextx) Response() http.ResponseWriter { return c.res }
-
-func (c *contextx) Middleware(h middleware.Handler) middleware.Handler {
-	if tr, ok := transport.FromServerContext(c.req.Context()); ok {
-		return middleware.Chain(c.router.srv.middleware.Match(tr.Operation())...)(h)
-	}
-	return middleware.Chain(c.router.srv.middleware.Match(c.req.URL.Path)...)(h)
+func (c *contextx) Request() *http.Request {
+	return c.req
 }
 
-func (c *contextx) Bind(v interface{}) error { return c.router.srv.decoder(c.req, v) }
+func (c *contextx) Response() http.ResponseWriter {
+	return c.res
+}
 
-func (c *contextx) BindVars(v interface{}) error { return binding.BindQuery(c.Vars(), v) }
+func (c *contextx) Middleware(h pbchain.Handler) pbchain.Handler {
+	if tr, ok := transport.FromServerContext(c.req.Context()); ok {
+		return pbchain.Chain(c.router.srv.pbchain.Match(tr.Operation())...)(h)
+	}
+	return pbchain.Chain(c.router.srv.pbchain.Match(c.req.URL.Path)...)(h)
+}
 
-func (c *contextx) BindQuery(v interface{}) error { return binding.BindQuery(c.Query(), v) }
+func (c *contextx) Bind(v interface{}) error {
+	return c.router.srv.decoder(c.req, v)
+}
 
-func (c *contextx) BindForm(v interface{}) error { return binding.BindForm(c.req, v) }
+func (c *contextx) BindVars(v interface{}) error {
+	return binding.BindQuery(c.Vars(), v)
+}
+
+func (c *contextx) BindQuery(v interface{}) error {
+	return binding.BindQuery(c.Query(), v)
+}
+
+func (c *contextx) BindForm(v interface{}) error {
+	return binding.BindForm(c.req, v)
+}
 
 func (c *contextx) Returns(v interface{}, err error) error {
 	if err != nil {

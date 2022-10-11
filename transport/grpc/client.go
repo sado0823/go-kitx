@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sado0823/go-kitx/kit/middleware"
 	"github.com/sado0823/go-kitx/kit/registry"
 	"github.com/sado0823/go-kitx/transport"
 	"github.com/sado0823/go-kitx/transport/grpc/balancer/p2c"
 	_ "github.com/sado0823/go-kitx/transport/grpc/resolver/direct"
 	"github.com/sado0823/go-kitx/transport/grpc/resolver/discovery"
+	"github.com/sado0823/go-kitx/transport/pbchain"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -23,11 +23,11 @@ type (
 	ClientOption func(o *client)
 
 	client struct {
-		endpoint   string
-		tlsConfig  *tls.Config
-		timeout    time.Duration
-		discovery  registry.Discovery
-		middleware []middleware.Middleware
+		endpoint  string
+		tlsConfig *tls.Config
+		timeout   time.Duration
+		discovery registry.Discovery
+		pbchain   []pbchain.Middleware
 
 		unaryInts []grpc.UnaryClientInterceptor
 		grpcOpts  []grpc.DialOption
@@ -46,9 +46,9 @@ func WithClientTimeout(timeout time.Duration) ClientOption {
 	}
 }
 
-func WithClientMiddleware(m ...middleware.Middleware) ClientOption {
+func WithClientPBChain(m ...pbchain.Middleware) ClientOption {
 	return func(o *client) {
-		o.middleware = m
+		o.pbchain = m
 	}
 }
 
@@ -94,7 +94,7 @@ func dial(ctx context.Context, insecure bool, opts ...ClientOption) (*grpc.Clien
 	}
 
 	ints := []grpc.UnaryClientInterceptor{
-		unaryClientInterceptor(opt.middleware, opt.timeout),
+		unaryClientInterceptor(opt.pbchain, opt.timeout),
 	}
 	ints = append(ints, opt.unaryInts...)
 
@@ -121,7 +121,7 @@ func dial(ctx context.Context, insecure bool, opts ...ClientOption) (*grpc.Clien
 	return grpc.DialContext(ctx, opt.endpoint, grpcOpts...)
 }
 
-func unaryClientInterceptor(ms []middleware.Middleware, timeout time.Duration) grpc.UnaryClientInterceptor {
+func unaryClientInterceptor(ms []pbchain.Middleware, timeout time.Duration) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		ctx = transport.NewClientContext(ctx, &Transport{
 			endpoint:  cc.Target(),
@@ -146,7 +146,7 @@ func unaryClientInterceptor(ms []middleware.Middleware, timeout time.Duration) g
 			return reply, invoker(ctx, method, req, reply, cc, opts...)
 		}
 		if len(ms) > 0 {
-			h = middleware.Chain(ms...)(h)
+			h = pbchain.Chain(ms...)(h)
 		}
 		_, err := h(ctx, req)
 		return err
