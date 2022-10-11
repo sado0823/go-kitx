@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/alicebob/miniredis/v2 v2.23.0
+	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/go-playground/form/v4 v4.2.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/goccy/go-graphviz v0.0.9
