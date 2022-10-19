@@ -1,5 +1,5 @@
 [server]
-  goRoot = "${GOROOT}"
+  tGoEnvTest = "${T_GO_ENV_TEST}"
   [server.http]
     addr = "0.0.0.0:8000"
     timeout = "1s"

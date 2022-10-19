@@ -1,6 +1,6 @@
 {
   "server": {
-    "go_root": "${GOROOT}",
+    "t_go_env_test": "${T_GO_ENV_TEST}",
     "http": {
       "addr": "0.0.0.0:8000",
       "timeout": "1s"

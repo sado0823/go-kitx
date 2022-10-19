@@ -213,7 +213,7 @@ func (m *Server) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for GoRoot
+	// no validation rules for TGoEnvTest
 
 	if all {
 		switch v := interface{}(m.GetHttp()).(type) {

@@ -1,7 +1,7 @@
 package file
 
 import (
-	"strings"
+	"os"
 	"testing"
 	"time"
 
@@ -31,8 +31,9 @@ func Test_New_Fail(t *testing.T) {
 
 type selfBoot struct {
 	Server *struct {
-		GoRoot string `json:"go_root" yaml:"goRoot"`
-		Http   *struct {
+		// TGoEnvTest
+		TGoEnvTest string `json:"t_go_env_test" yaml:"tGoEnvTest"`
+		Http       *struct {
 			Addr    string `json:"addr"`
 			Timeout string `json:"timeout"`
 		} `json:"http"`
@@ -81,6 +82,10 @@ func Test_New_No_ENV(t *testing.T) {
 
 func Test_New_With_ENV(t *testing.T) {
 	cases := []string{"./test.json", "./test.toml", "./test.yaml"}
+	if err := os.Setenv("T_GO_ENV_TEST", "/foo/bar/go"); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Unsetenv("T_GO_ENV_TEST")
 	for _, caseV := range cases {
 		t.Run(caseV, func(t *testing.T) {
 			configer := config.New(config.WithReader(New(caseV, WithEnv())))
@@ -105,14 +110,12 @@ func Test_New_With_ENV(t *testing.T) {
 }
 
 func assertPb(t *testing.T, pb *pbconfig.Bootstrap, WithEnv bool) {
-	t.Log("from env: ", pb.Server.GoRoot)
+	t.Log("from env: ", pb.Server.TGoEnvTest)
 	if WithEnv {
 		// from env
-		assert.NotEmpty(t, pb.Server.GoRoot)
-		envs := strings.Split(pb.Server.GoRoot, "/")
-		assert.Equal(t, "go", envs[len(envs)-1])
+		assert.Equal(t, "/foo/bar/go", pb.Server.TGoEnvTest)
 	} else {
-		assert.Equal(t, "${GOROOT}", pb.Server.GoRoot)
+		assert.Equal(t, "${T_GO_ENV_TEST}", pb.Server.TGoEnvTest)
 	}
 
 	// http
@@ -135,14 +138,12 @@ func assertPb(t *testing.T, pb *pbconfig.Bootstrap, WithEnv bool) {
 }
 
 func assertSelf(t *testing.T, self *selfBoot, WithEnv bool) {
-	t.Log("from env: ", self.Server.GoRoot)
+	t.Log("from env: ", self.Server.TGoEnvTest)
 	if WithEnv {
 		// from env
-		assert.NotEmpty(t, self.Server.GoRoot)
-		envs := strings.Split(self.Server.GoRoot, "/")
-		assert.Equal(t, "go", envs[len(envs)-1])
+		assert.Equal(t, "/foo/bar/go", self.Server.TGoEnvTest)
 	} else {
-		assert.Equal(t, "${GOROOT}", self.Server.GoRoot)
+		assert.Equal(t, "${T_GO_ENV_TEST}", self.Server.TGoEnvTest)
 	}
 
 	// http
