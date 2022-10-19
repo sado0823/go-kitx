@@ -1,0 +1,17 @@
+[server]
+  goRoot = "${GOROOT}"
+  [server.http]
+    addr = "0.0.0.0:8000"
+    timeout = "1s"
+  [server.grpc]
+    addr = "0.0.0.0:9000"
+    timeout = "1s"
+
+[data]
+  [data.database]
+    driver = "mysql"
+    source = "root:root@tcp(127.0.0.1:3306)/test"
+  [data.redis]
+    addr = "127.0.0.1:6379"
+    readTimeout = "0.2s"
+    writeTimeout = "0.2s"

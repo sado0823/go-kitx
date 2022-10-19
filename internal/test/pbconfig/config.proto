@@ -1,0 +1,42 @@
+syntax = "proto3";
+package kitx.api;
+
+option go_package = "github.com/sado0823/go-kitx/internal/test/pbconfig";
+
+import "google/protobuf/duration.proto";
+
+message Bootstrap {
+    Server server = 1;
+    Data data = 2;
+}
+
+message Server {
+    string go_root = 1;
+    message HTTP {
+        string network = 1;
+        string addr = 2;
+        google.protobuf.Duration timeout = 3;
+    }
+    message GRPC {
+        string network = 1;
+        string addr = 2;
+        google.protobuf.Duration timeout = 3;
+    }
+    HTTP http = 2;
+    GRPC grpc = 3;
+}
+
+message Data {
+    message Database {
+        string driver = 1;
+        string source = 2;
+    }
+    message Redis {
+        string network = 1;
+        string addr = 2;
+        google.protobuf.Duration read_timeout = 3;
+        google.protobuf.Duration write_timeout = 4;
+    }
+    Database database = 1;
+    Redis redis = 2;
+}
