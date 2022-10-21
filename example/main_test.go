@@ -52,7 +52,7 @@ func Test_NewApp(t *testing.T) {
 				})
 			}),
 			http.WithServerPBChain(
-				pbchain.LoggingServer(log.GetGlobal()),
+				pbchain.LoggingServer(),
 				pbchain.Validator(),
 			),
 		)
