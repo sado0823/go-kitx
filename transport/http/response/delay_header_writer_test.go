@@ -8,15 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_WithCodeResponseWriter(t *testing.T) {
+func Test_DelayHeaderResponseWriter(t *testing.T) {
 
 	code := http.StatusServiceUnavailable
-	content := []byte(`Test_WithCodeResponseWriter`)
+	content := []byte(`Test_DelayHeaderResponseWriter`)
 
 	t.Run("GET", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			codeW := &WithCodeResponseWriter{Writer: w}
+			codeW := &DelayHeaderResponseWriter{Writer: w}
 
 			codeW.Header().Set("x-test-get", "test-get")
 			codeW.WriteHeader(code)
@@ -36,7 +36,7 @@ func Test_WithCodeResponseWriter(t *testing.T) {
 	t.Run("POST", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "http://localhost", nil)
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			codeW := &WithCodeResponseWriter{Writer: w}
+			codeW := &DelayHeaderResponseWriter{Writer: w}
 
 			codeW.Header().Set("x-test-post", "test-post")
 			codeW.WriteHeader(code)

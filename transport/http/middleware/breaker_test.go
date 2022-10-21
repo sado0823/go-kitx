@@ -16,6 +16,7 @@ func TestBreaker_Handle(t *testing.T) {
 		breakerNext := Breaker()
 		mux := breakerNext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("x-test", "x-test")
+			w.WriteHeader(200)
 			_, err := w.Write([]byte("test"))
 			assert.Nil(t, err)
 		}))
@@ -33,6 +34,8 @@ func TestBreaker_Handle(t *testing.T) {
 		breakerNext := Breaker()
 		mux := breakerNext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusGatewayTimeout)
+			_, err := w.Write([]byte("test"))
+			assert.Nil(t, err)
 		}))
 
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)

@@ -50,7 +50,7 @@ type (
 		router *Router
 		req    *http.Request
 		res    http.ResponseWriter
-		w      response.WithCodeResponseWriter
+		w      response.DelayHeaderResponseWriter
 	}
 )
 

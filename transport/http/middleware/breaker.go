@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"github.com/sado0823/go-kitx/transport/http/response"
 	"net/http"
 
 	"github.com/sado0823/go-kitx/kit/breaker"
+	"github.com/sado0823/go-kitx/transport/http/response"
 )
 
 func Breaker() func(http.Handler) http.Handler {
@@ -17,7 +17,7 @@ func Breaker() func(http.Handler) http.Handler {
 				return
 			}
 
-			writer := &response.WithCodeResponseWriter{ResponseWriter: w}
+			writer := &response.WithCodeResponseWriter{Writer: w}
 			defer func() {
 				if writer.Code < http.StatusInternalServerError {
 					b.MarkSuccess()
