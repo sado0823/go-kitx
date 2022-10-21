@@ -94,7 +94,7 @@ func (c *contextx) Middleware(h pbchain.Handler) pbchain.Handler {
 }
 
 func (c *contextx) Bind(v interface{}) error {
-	return c.router.srv.decoder(c.req, v)
+	return c.router.srv.reqDecoder(c.req, v)
 }
 
 func (c *contextx) BindVars(v interface{}) error {
@@ -113,12 +113,12 @@ func (c *contextx) Returns(v interface{}, err error) error {
 	if err != nil {
 		return err
 	}
-	return c.router.srv.encoder(&c.w, c.req, v)
+	return c.router.srv.respEncoder(&c.w, c.req, v)
 }
 
 func (c *contextx) Result(code int, v interface{}) error {
 	c.w.WriteHeader(code)
-	return c.router.srv.encoder(&c.w, c.req, v)
+	return c.router.srv.respEncoder(&c.w, c.req, v)
 }
 
 func (c *contextx) JSON(code int, v interface{}) error {

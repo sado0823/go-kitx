@@ -46,6 +46,8 @@ type (
 		// http: http.Header
 		// grpc: metadata.MD
 		ReplyHeader() Header
+
+		PathTemplate() string
 	}
 )
 

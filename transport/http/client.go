@@ -21,18 +21,18 @@ type (
 	Client struct {
 		ctx context.Context
 
-		tlsConf      *tls.Config
-		timeout      time.Duration
-		endpoint     string
-		host         string
-		scheme       string
-		userAgent    string
-		encoder      EncodeRequestFunc
-		decoder      DecodeResponseFunc
-		errorDecoder DecodeErrorFunc
-		transport    http.RoundTripper
-		pbchain      []pbchain.Middleware
-		insecure     bool
+		tlsConf         *tls.Config
+		timeout         time.Duration
+		endpoint        string
+		host            string
+		scheme          string
+		userAgent       string
+		requestEncoder  EncodeRequestFunc
+		responseDecoder DecodeResponseFunc
+		errorDecoder    DecodeErrorFunc
+		transport       http.RoundTripper
+		pbchain         []pbchain.Middleware
+		insecure        bool
 
 		httpClient *http.Client
 	}
@@ -70,13 +70,13 @@ func WithClientEndpoint(endpoint string) ClientOption {
 
 func WithClientRequestEncoder(encoder EncodeRequestFunc) ClientOption {
 	return func(o *Client) {
-		o.encoder = encoder
+		o.requestEncoder = encoder
 	}
 }
 
 func WithClientResponseDecoder(decoder DecodeResponseFunc) ClientOption {
 	return func(o *Client) {
-		o.decoder = decoder
+		o.responseDecoder = decoder
 	}
 }
 
@@ -94,12 +94,12 @@ func WithClientTLSConfig(c *tls.Config) ClientOption {
 
 func NewClient(ctx context.Context, opts ...ClientOption) (*Client, error) {
 	client := &Client{
-		ctx:          ctx,
-		timeout:      time.Second * 2,
-		encoder:      RequestEncoder,
-		decoder:      ResponseDecoder,
-		errorDecoder: ErrorDecoder,
-		transport:    http.DefaultTransport,
+		ctx:             ctx,
+		timeout:         time.Second * 2,
+		requestEncoder:  RequestEncoder,
+		responseDecoder: ResponseDecoder,
+		errorDecoder:    ErrorDecoder,
+		transport:       http.DefaultTransport,
 	}
 	for _, opt := range opts {
 		opt(client)
@@ -155,7 +155,7 @@ func (c *Client) Invoke(ctx context.Context, method, path string, args, reply in
 	)
 
 	if args != nil {
-		encoder, err := c.encoder(ctx, call.contentType, args)
+		encoder, err := c.requestEncoder(ctx, call.contentType, args)
 		if err != nil {
 			return err
 		}
@@ -199,7 +199,7 @@ func (c *Client) invoke(ctx context.Context, req *http.Request, args, reply inte
 			return nil, err
 		}
 		defer resp.Body.Close()
-		if err = c.decoder(ctx, resp, reply); err != nil {
+		if err = c.responseDecoder(ctx, resp, reply); err != nil {
 			return nil, err
 		}
 		return reply, nil

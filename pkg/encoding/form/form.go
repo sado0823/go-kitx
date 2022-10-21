@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	Name    = "form"
+	Name    = "x-www-form-urlencoded"
 	nullStr = "null"
 )
 

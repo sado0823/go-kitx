@@ -42,8 +42,8 @@ type (
 		filters []FilterFunc
 		pbchain pbchain.Matcher
 
-		decoder      DecodeRequestFunc
-		encoder      EncodeResponseFunc
+		reqDecoder   DecodeRequestFunc
+		respEncoder  EncodeResponseFunc
 		errorEncoder EncodeErrorFunc
 
 		err error
@@ -82,13 +82,13 @@ func WithServerFilter(filters ...FilterFunc) ServerOption {
 
 func WithServerRequestDecoder(dec DecodeRequestFunc) ServerOption {
 	return func(o *Server) {
-		o.decoder = dec
+		o.reqDecoder = dec
 	}
 }
 
 func WithServerResponseEncoder(en EncodeResponseFunc) ServerOption {
 	return func(o *Server) {
-		o.encoder = en
+		o.respEncoder = en
 	}
 }
 
@@ -126,8 +126,8 @@ func NewServer(opts ...ServerOption) *Server {
 		address:      ":0",
 		timeout:      time.Second * 2,
 		pbchain:      pbchain.NewMatcher(),
-		decoder:      RequestDecoder,
-		encoder:      ResponseEncoder,
+		reqDecoder:   RequestDecoder,
+		respEncoder:  ResponseEncoder,
 		errorEncoder: ErrorEncoder,
 	}
 

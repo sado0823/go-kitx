@@ -26,7 +26,7 @@ func (r *ResourceManager) Close() error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	var batchErr errorx.Batch
+	batchErr := new(errorx.Batch)
 	for _, resource := range r.resources {
 		if err := resource.Close(); err != nil {
 			batchErr.Add(err)

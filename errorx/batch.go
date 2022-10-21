@@ -12,12 +12,13 @@ type (
 )
 
 // Add adds errs to be, nil errorx are ignored.
-func (be *Batch) Add(errs ...error) {
+func (be *Batch) Add(errs ...error) *Batch {
 	for _, err := range errs {
 		if err != nil {
 			be.errs = append(be.errs, err)
 		}
 	}
+	return be
 }
 
 // Err returns an error that represents all errorx.

@@ -85,10 +85,7 @@ func ResponseEncoder(w http.ResponseWriter, r *http.Request, v interface{}) erro
 	}
 	w.Header().Set("Content-Type", contentType(codec.Name()))
 	_, err = w.Write(data)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func ErrorDecoder(ctx context.Context, res *http.Response) error {

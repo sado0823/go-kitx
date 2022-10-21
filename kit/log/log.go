@@ -28,6 +28,31 @@ func (l *logger) Log(level Level, kvs ...interface{}) error {
 	return l.internal.Log(level, fullKvs...)
 }
 
+func RemoveFields(l Logger, keys ...interface{}) Logger {
+	from, ok := l.(*logger)
+	if !ok {
+		return l
+	}
+
+	lenKvs := len(from.prefix)
+	kvs := from.prefix
+	if (lenKvs & 1) == 1 {
+		kvs = append(kvs, "log key value unpaired")
+	}
+
+	newKvs := make([]interface{}, 0, len(kvs))
+	for i := 0; i < lenKvs; i += 2 {
+		for _, key := range keys {
+			if kvs[i] == key {
+				continue
+			}
+			newKvs = append(newKvs, kvs[i], kvs[i+1])
+		}
+	}
+
+	return &logger{ctx: from.ctx, internal: from.internal, prefix: newKvs, hasValuer: containValuer(newKvs)}
+}
+
 // WithFields add new fields to the logger
 func WithFields(l Logger, kvs ...interface{}) Logger {
 	from, ok := l.(*logger)

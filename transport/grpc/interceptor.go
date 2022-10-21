@@ -30,7 +30,7 @@ func (s *Server) defaultUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 
 		mergeCtx = transport.NewServerContext(mergeCtx, tr)
 		if s.timeout > 0 {
-			mergeCtx, cancelFunc = context.WithTimeout(ctx, s.timeout)
+			mergeCtx, cancelFunc = context.WithTimeout(mergeCtx, s.timeout)
 			defer cancelFunc()
 		}
 

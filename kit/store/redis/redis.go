@@ -6,6 +6,7 @@ import (
 
 	rdsV8 "github.com/go-redis/redis/v8"
 
+	"github.com/sado0823/go-kitx/errorx"
 	"github.com/sado0823/go-kitx/kit/breaker"
 )
 
@@ -76,4 +77,11 @@ func (r *Redis) Ping(ctx context.Context) error {
 		}
 		return conn.Ping(ctx).Err()
 	}, acceptable)
+}
+
+func (r *Redis) Close() error {
+	return new(errorx.Batch).Add(
+		clientManager.Close(),
+		clusterManager.Close(),
+	).Err()
 }

@@ -27,6 +27,10 @@ func (t *Transport) Operation() string {
 	return t.operation
 }
 
+func (t *Transport) PathTemplate() string {
+	return t.operation
+}
+
 func (t *Transport) RequestHeader() transport.Header {
 	return t.reqHeader
 }

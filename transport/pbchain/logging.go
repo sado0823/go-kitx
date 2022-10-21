@@ -10,19 +10,21 @@ import (
 	"github.com/sado0823/go-kitx/transport"
 )
 
-func LoggingServer(logger log.Logger) Middleware {
+func LoggingServer() Middleware {
 	return func(next Handler) Handler {
 		return func(ctx context.Context, req interface{}) (resp interface{}, err error) {
 			var (
-				code      int32
-				reason    string
-				kind      string
-				operation string
+				code         int32
+				reason       string
+				kind         string
+				operation    string
+				pathTemplate string
 			)
 			startTime := time.Now()
 			if info, ok := transport.FromServerContext(ctx); ok {
 				kind = info.Kind().String()
 				operation = info.Operation()
+				pathTemplate = info.PathTemplate()
 			}
 			resp, err = next(ctx, req)
 			if se := errorx.FromError(err); se != nil {
@@ -30,10 +32,11 @@ func LoggingServer(logger log.Logger) Middleware {
 				reason = se.Reason
 			}
 			level, stack := extractError(err)
-			_ = log.WithContext(ctx, logger).Log(level,
+			log.Context(ctx).Log(level,
 				"kind", "server",
 				"component", kind,
 				"operation", operation,
+				"path_template", pathTemplate,
 				"args", extractArgs(req),
 				"code", code,
 				"reason", reason,
@@ -45,19 +48,21 @@ func LoggingServer(logger log.Logger) Middleware {
 	}
 }
 
-func LoggingClient(logger log.Logger) Middleware {
+func LoggingClient() Middleware {
 	return func(handler Handler) Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			var (
-				code      int32
-				reason    string
-				kind      string
-				operation string
+				code         int32
+				reason       string
+				kind         string
+				operation    string
+				pathTemplate string
 			)
 			startTime := time.Now()
 			if info, ok := transport.FromClientContext(ctx); ok {
 				kind = info.Kind().String()
 				operation = info.Operation()
+				pathTemplate = info.PathTemplate()
 			}
 			reply, err = handler(ctx, req)
 			if se := errorx.FromError(err); se != nil {
@@ -65,10 +70,11 @@ func LoggingClient(logger log.Logger) Middleware {
 				reason = se.Reason
 			}
 			level, stack := extractError(err)
-			_ = log.WithContext(ctx, logger).Log(level,
+			log.Context(ctx).Log(level,
 				"kind", "client",
 				"component", kind,
 				"operation", operation,
+				"path_template", pathTemplate,
 				"args", extractArgs(req),
 				"code", code,
 				"reason", reason,
