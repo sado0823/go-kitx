@@ -32,14 +32,17 @@ type (
 )
 
 func RequestDecoder(r *http.Request, v interface{}) error {
+	ct := r.Header.Get("Content-Type")
 	codec, ok := CodecForRequest(r, "Content-Type")
 	if !ok {
-		return errorx.BadRequest("CODEC", fmt.Sprintf("unregister Content-Type: %s", r.Header.Get("Content-Type")))
+		return errorx.BadRequest("CODEC", fmt.Sprintf("unregister Content-Type: %s", ct))
 	}
-	data, err := io.ReadAll(r.Body)
+
+	data, err := rawData(ct)(r)
 	if err != nil {
-		return errorx.BadRequest("CODEC", err.Error())
+		return errorx.BadRequest("CODEC raw data err:%+v", err.Error())
 	}
+
 	if len(data) == 0 {
 		return nil
 	}

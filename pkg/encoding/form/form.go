@@ -4,8 +4,6 @@ import (
 	"net/url"
 	"reflect"
 
-	"github.com/sado0823/go-kitx/pkg/encoding"
-
 	"github.com/go-playground/form/v4"
 	"google.golang.org/protobuf/proto"
 )
@@ -23,7 +21,8 @@ var (
 func init() {
 	decoder.SetTagName("json")
 	encoder.SetTagName("json")
-	encoding.RegisterCodec(codec{encoder: encoder, decoder: decoder})
+	// todo
+	//encoding.RegisterCodec(codec{encoder: encoder, decoder: decoder})
 }
 
 type codec struct {
