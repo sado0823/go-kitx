@@ -5,4 +5,5 @@ go 1.16
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/urfave/cli/v2 v2.20.2
+	golang.org/x/mod v0.6.0
 )

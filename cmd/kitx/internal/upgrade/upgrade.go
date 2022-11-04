@@ -7,6 +7,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	flagAll = "all"
+)
+
 func Cmd() *cli.Command {
 	return &cli.Command{
 		Name:    "upgrade",
@@ -14,7 +18,7 @@ func Cmd() *cli.Command {
 		Usage:   "upgrade kitx tools",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:        "add",
+				Name:        flagAll,
 				DefaultText: "true",
 				Usage:       "update all tools including protoc-gen-go*",
 				Aliases:     []string{"a"},
@@ -38,11 +42,10 @@ func Cmd() *cli.Command {
 					"github.com/sado0823/go-kitx/cmd/protoc-gen-go-http-kitx@latest",
 					"github.com/sado0823/go-kitx/cmd//protoc-gen-go-errors-kitx@latest",
 				}
-				addAll = cCtx.Bool("add")
+				addAll = cCtx.Bool(flagAll)
 			)
 			if addAll {
 				toInstall = append([]string{
-					"google.golang.org/protobuf/cmd/protoc-gen-go123@latest",
 					"google.golang.org/protobuf/cmd/protoc-gen-go@latest",
 					"google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest",
 				}, toInstall...)

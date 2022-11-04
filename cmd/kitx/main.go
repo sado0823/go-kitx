@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/sado0823/go-kitx/cmd/kitx/internal/project"
 	"github.com/sado0823/go-kitx/cmd/kitx/internal/upgrade"
 
 	"github.com/urfave/cli/v2"
@@ -17,8 +18,10 @@ func main() {
 		Version: "v0.0.1",
 		Suggest: true,
 		Commands: []*cli.Command{
-			// upgrade
+			// cmd upgrade
 			upgrade.Cmd(),
+			// new project
+			project.Cmd(),
 			{
 				Name:    "complete",
 				Aliases: []string{"c"},
