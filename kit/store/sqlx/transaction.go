@@ -26,6 +26,19 @@ var begin = func(db *sql.DB) (transactionI, error) {
 	return &transaction{tx}, nil
 }
 
+func (c *transaction) Prepare(ctx context.Context, query string) (stmt StmtSession, err error) {
+	startCtx, span := startSpan(ctx, "Transaction Prepare")
+	defer func() { endSpan(span, err) }()
+
+	var sqlStmt *sql.Stmt
+	sqlStmt, err = c.PrepareContext(startCtx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &statement{stmt: sqlStmt, query: query}, nil
+}
+
 func (c *transaction) Exec(ctx context.Context, query string, args ...interface{}) (result sql.Result, err error) {
 	startCtx, span := startSpan(ctx, "Transaction Exec")
 	defer func() { endSpan(span, err) }()
@@ -58,5 +71,9 @@ func (c *transaction) query(ctx context.Context, scanner func(rows *sql.Rows) er
 		return err
 	}
 	defer rows.Close()
-	return scanner(rows)
+	if err = scanner(rows); err != nil {
+		return err
+	}
+
+	return rows.Err()
 }

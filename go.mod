@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/go-playground/form/v4 v4.2.0

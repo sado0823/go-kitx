@@ -64,6 +64,7 @@ type (
 		Exec(ctx context.Context, query string, args ...interface{}) (result sql.Result, err error)
 		QueryRow(ctx context.Context, v interface{}, query string, args ...interface{}) error
 		Query(ctx context.Context, v interface{}, query string, args ...interface{}) error
+		Prepare(ctx context.Context, query string) (StmtSession, error)
 	}
 
 	Conn interface {
@@ -85,6 +86,22 @@ func acceptable(err error) bool {
 
 func (c *conn) Close() error {
 	return c.db.Close()
+}
+
+func (c *conn) Prepare(ctx context.Context, query string) (stmt StmtSession, err error) {
+	startCtx, span := startSpan(ctx, "Prepare")
+	defer func() { endSpan(span, err) }()
+
+	err = c.brk.DoWithAcceptable(func() error {
+		sqlStmt, err := c.db.PrepareContext(startCtx, query)
+		if err != nil {
+			return err
+		}
+		stmt = &statement{stmt: sqlStmt, query: query}
+		return nil
+	}, acceptable)
+
+	return stmt, err
 }
 
 func (c *conn) Transaction(ctx context.Context, fn func(ctx context.Context, session Session) error) (err error) {
