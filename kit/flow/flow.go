@@ -3,10 +3,10 @@ package flow
 import (
 	"bytes"
 	"fmt"
-	"github.com/goccy/go-graphviz/cgraph"
 	"log"
 
 	"github.com/goccy/go-graphviz"
+	"github.com/goccy/go-graphviz/cgraph"
 )
 
 func NewGraphviz() {
@@ -43,11 +43,11 @@ func NewGraphviz() {
 		}
 	)
 
-	gatewayStart,err := Diamond(graph, gateways[0].name, gateways[0].label)
+	gatewayStart, err := Diamond(graph, gateways[0].name, gateways[0].label)
 	if err != nil {
 		log.Fatal(err)
 	}
-	gatewayEnd,err := Diamond(graph, gateways[1].name, gateways[1].label)
+	gatewayEnd, err := Diamond(graph, gateways[1].name, gateways[1].label)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func doNode(graph *cgraph.Graph, name string, label string, shape cgraph.Shape) 
 func Link(graph *cgraph.Graph, name string, label string, from *cgraph.Node, to *cgraph.Node) error {
 	e, err := graph.CreateEdge(name, from, to)
 	if err != nil {
-		return  err
+		return err
 	}
 	e.SetLabel(label)
 	return nil
