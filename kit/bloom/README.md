@@ -43,7 +43,7 @@ https://github.com/sado0823/go-kitx
 
 通过多个`hash`方法, 进行多次hash操作, 使其值位于`bit`不同位上, 检测该`bit`上的数据是否为`1`, 从而判断是否存在
 
-![image-20210912175241849](./image-bloom.png)
+![image-20210912175241849](image-bloom.png)
 
 
 
