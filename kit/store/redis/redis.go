@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	rdsV8 "github.com/go-redis/redis/v8"
-
 	"github.com/sado0823/go-kitx/errorx"
 	"github.com/sado0823/go-kitx/kit/breaker"
+
+	rdsV8 "github.com/go-redis/redis/v8"
 )
 
 const (
