@@ -92,12 +92,11 @@ func Test_Trie(t *testing.T) {
 func Test_WithMask(t *testing.T) {
 	trieTree := New([]string{
 		"美国",
-	}, WithMask(rune('$')))
+	}, WithMask('$'))
 
 	input := "美国队长"
 	output := "$$队长"
 	keywords := []string{"美国"}
-	hit := true
 
 	maskText, keywords2, hit2 := trieTree.Filter(input)
 	fmt.Println("maskText:---", maskText)
@@ -105,7 +104,7 @@ func Test_WithMask(t *testing.T) {
 	fmt.Println("hit2:---", hit2)
 	assert.Equal(t, output, maskText)
 	assert.ElementsMatch(t, keywords, keywords2)
-	assert.Equal(t, hit, hit2)
+	assert.Equal(t, true, hit2)
 
 }
 
