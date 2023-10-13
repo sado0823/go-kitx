@@ -125,3 +125,13 @@ func Test_NewApp(t *testing.T) {
 	t.Log(err)
 }
 ```
+
+- [x] [**kit**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
+```go
+  1) consistent hash
+  2) bbr、token、period ratelimit
+  3) backoff and jitter retry func
+  4) redis, sql orm
+  5) log plugin
+  6) go ast rule engine
+```
