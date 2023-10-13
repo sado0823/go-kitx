@@ -5,7 +5,7 @@
 Some practical tools、 algorithms written in Go
 
 
-- [x] [**p2c grpc balancer**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
+## [**p2c grpc balancer**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
 ```go
 // example
 func test() {
@@ -18,7 +18,7 @@ func test() {
 }
 ```
 
-- [x] [**ast rule engine**](https://github.com/sado0823/go-kitx/tree/master/kit/rule)
+## [**ast rule engine**](https://github.com/sado0823/go-kitx/tree/master/kit/rule)
 
 __supported operator__
 
@@ -70,7 +70,7 @@ func main(){
 ```
 
 
-- [x] [**start app with http and grpc**](https://github.com/sado0823/go-kitx/tree/master)
+## [**start app with http and grpc**](https://github.com/sado0823/go-kitx/tree/master)
 
 ![img.png](docs/image/img.png)
 
@@ -126,7 +126,7 @@ func Test_NewApp(t *testing.T) {
 }
 ```
 
-- [x] [**kit**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
+## [**kit**]
 ```go
   1) consistent hash
   2) bbr、token、period ratelimit
@@ -134,4 +134,29 @@ func Test_NewApp(t *testing.T) {
   4) redis, sql orm
   5) log plugin
   6) go ast rule engine
+```
+
+## [**CMD**](https://github.com/sado0823/go-kitx/tree/master/cmd)
+```shell
+❯ ./kitx -h   
+    
+NAME:
+   kitx - ⭐️ cli command for go-kitx
+
+USAGE:
+   kitx [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.0.1
+
+COMMANDS:
+   upgrade, u   upgrade kitx tools
+   new, n       generate project from template
+   complete, c  complete a task on the list
+   help, h      Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h     show help (default: false)
+   --version, -v  print the version (default: false)
+    
 ```
