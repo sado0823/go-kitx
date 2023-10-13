@@ -5,7 +5,7 @@
 Some practical tools、 algorithms written in Go
 
 
-## [**p2c grpc balancer**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
+## [**1) p2c grpc balancer**](https://github.com/sado0823/go-kitx/tree/master/grpc/balancer/p2c)
 ```go
 // example
 func test() {
@@ -18,7 +18,7 @@ func test() {
 }
 ```
 
-## [**ast rule engine**](https://github.com/sado0823/go-kitx/tree/master/kit/rule)
+## [**2) ast rule engine**](https://github.com/sado0823/go-kitx/tree/master/kit/rule)
 
 __supported operator__
 
@@ -70,7 +70,7 @@ func main(){
 ```
 
 
-## [**start app with http and grpc**](https://github.com/sado0823/go-kitx/tree/master)
+## [**3) start app with http and grpc**](https://github.com/sado0823/go-kitx/tree/master)
 
 ![img.png](docs/image/img.png)
 
@@ -126,7 +126,7 @@ func Test_NewApp(t *testing.T) {
 }
 ```
 
-## [**kit**]
+## [**4) kit**]()
 ```go
   1) consistent hash
   2) bbr、token、period ratelimit
@@ -136,7 +136,7 @@ func Test_NewApp(t *testing.T) {
   6) go ast rule engine
 ```
 
-## [**CMD**](https://github.com/sado0823/go-kitx/tree/master/cmd)
+## [**5) CMD**](https://github.com/sado0823/go-kitx/tree/master/cmd)
 ```shell
 ❯ ./kitx -h   
     
